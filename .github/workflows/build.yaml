@@ -4,17 +4,22 @@ on: push
 
 jobs:
     build_prepare:
-        name: Prepare build Python wheels for Linux
+        name: Prepare build
         runs-on: ubuntu-latest
         outputs:
-            chip_sha: ${{ steps.determine_version.outputs.chip_sha }}
+            chip_sha: ${{ steps.determine_sha.outputs.chip_sha }}
+            version: ${{ steps.version.outputs.version }}
+            channel: ${{ steps.version.outputs.channel }}
         steps:
             - name: Checkout build repository
               uses: actions/checkout@v3
             - name: Determine version
-              id: determine_version
+              id: determine_sha
               run: |
                   echo "chip_sha=a17c005209fbde737edb97b0f51ea63472c166aa" >> $GITHUB_OUTPUT
+            - name: Get version
+              id: version
+              uses: home-assistant/actions/helpers/version@master
 
     build_linux_python_lib:
         name: Build Python wheels for Linux
@@ -63,6 +68,7 @@ jobs:
             - name: Apply patches
               run: |
                   patch -p1 < ../0001-python-fix-platform-specific-wheel-to-be-spec-compli.patch
+                  patch -p1 < ../0001-python-allow-to-customize-wheel-package-name-and-ver.patch
             - name: Setup Build, Run Build and Run Tests
               timeout-minutes: 50
               run: |
@@ -72,14 +78,16 @@ jobs:
                                                   chip_config_memory_debug_checks=false \
                                                   chip_config_memory_debug_dmalloc=false \
                                                   chip_mdns=\"minimal\" \
+                                                  chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
+                                                  chip_python_package_prefix=\"home-assistant-chip\" \
                                                   "
                   scripts/run_in_build_env.sh "ninja -C ./out chip-repl"
             - name: Run Python library specific unit tests
               timeout-minutes: 5
               run: |
-                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/chip_core-0.0-cp37-abi3-linux_x86_64.whl'
-                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/chip_clusters-0.0-py3-none-any.whl'
-                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/chip_repl-0.0-py3-none-any.whl'
+                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-linux_x86_64.whl'
+                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_clusters-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
+                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
                   scripts/run_in_build_env.sh '(cd src/controller/python/test/unit_tests/ && python3 -m unittest -v)'
             - uses: actions/upload-artifact@v3
               with:
