@@ -25,6 +25,10 @@ jobs:
         permissions:
             contents: write  # for actions/upload-release-asset to upload release asset
 
+        defaults:
+            run:
+                working-directory: ./project-chip
+
         container:
             image: connectedhomeip/chip-build:0.5.99
             volumes:
@@ -37,16 +41,23 @@ jobs:
               env:
                   GITHUB_CONTEXT: ${{ toJSON(github) }}
               run: echo "$GITHUB_CONTEXT"
+              working-directory: ./
+            - name: Checkout build repository
+              uses: actions/checkout@v3
             - uses: Wandalen/wretry.action@v1.0.15
               name: Checkout
               with:
                   action: actions/checkout@v3
                   repository: project-chip/connectedhomeip
                   ref: ${{ needs.build_prepare.outputs.chip_sha }}
+                  path: ./project-chip
                   with: |
                       token: ${{ github.token }}
                   attempt_limit: 3
                   attempt_delay: 2000
+            - name: Apply patches
+              run: |
+                  patch -p1 < ../0001-python-fix-platform-specific-wheel-to-be-spec-compli.patch
             - name: Checkout submodules
               run: scripts/checkout_submodules.py --shallow --platform linux
             - name: Bootstrap
@@ -60,7 +71,7 @@ jobs:
                                                   enable_pylib=true \
                                                   chip_config_memory_debug_checks=false \
                                                   chip_config_memory_debug_dmalloc=false \
-                                                  chip_mdns=minimal \
+                                                  chip_mdns=\"minimal\" \
                                                   "
                   scripts/run_in_build_env.sh "ninja -C ./out chip-repl"
             - name: Run Python library specific unit tests
