@@ -55,14 +55,14 @@ jobs:
                       token: ${{ github.token }}
                   attempt_limit: 3
                   attempt_delay: 2000
-            - name: Apply patches
-              run: |
-                  patch -p1 < ../0001-python-fix-platform-specific-wheel-to-be-spec-compli.patch
             - name: Checkout submodules
               run: scripts/checkout_submodules.py --shallow --platform linux
             - name: Bootstrap
               timeout-minutes: 10
               run: scripts/build/gn_bootstrap.sh
+            - name: Apply patches
+              run: |
+                  patch -p1 < ../0001-python-fix-platform-specific-wheel-to-be-spec-compli.patch
             - name: Setup Build, Run Build and Run Tests
               timeout-minutes: 50
               run: |
