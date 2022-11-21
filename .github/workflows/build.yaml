@@ -55,9 +55,14 @@ jobs:
             - name: Setup Build, Run Build and Run Tests
               timeout-minutes: 50
               run: |
-                  scripts/build/gn_gen.sh --args="enable_rtti=true enable_pylib=true chip_config_memory_debug_checks=false chip_config_memory_debug_dmalloc=false"
-                  scripts/run_in_build_env.sh "ninja -C ./out"
-                  scripts/tests/gn_tests.sh
+                  scripts/build/gn_gen.sh --args=" \
+                                                  enable_rtti=true \
+                                                  enable_pylib=true \
+                                                  chip_config_memory_debug_checks=false \
+                                                  chip_config_memory_debug_dmalloc=false \
+                                                  chip_mdns=minimal \
+                                                  "
+                  scripts/run_in_build_env.sh "ninja -C ./out chip-repl"
             - name: Run Python library specific unit tests
               timeout-minutes: 5
               run: |
@@ -65,5 +70,7 @@ jobs:
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/chip_clusters-0.0-py3-none-any.whl'
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/chip_repl-0.0-py3-none-any.whl'
                   scripts/run_in_build_env.sh '(cd src/controller/python/test/unit_tests/ && python3 -m unittest -v)'
-
-
+            - uses: actions/upload-artifact@v3
+              with:
+                name: chip-wheels
+                path: out/controller/python/*.whl
