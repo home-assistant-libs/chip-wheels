@@ -1,0 +1,69 @@
+name: CHIP wheels build
+
+on: push
+
+jobs:
+    build_prepare:
+        name: Prepare build Python wheels for Linux
+        runs-on: ubuntu-latest
+        outputs:
+            chip_sha: ${{ steps.determine_version.outputs.chip_sha }}
+        steps:
+            - name: Checkout build repository
+              uses: actions/checkout@v3
+            - name: Determine version
+              id: determine_version
+              run: |
+                  echo "chip_sha=a17c005209fbde737edb97b0f51ea63472c166aa" >> $GITHUB_OUTPUT
+
+    build_linux_python_lib:
+        name: Build Python wheels for Linux
+        needs: build_prepare
+        timeout-minutes: 60
+
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write  # for actions/upload-release-asset to upload release asset
+
+        container:
+            image: connectedhomeip/chip-build:0.5.99
+            volumes:
+                - "/tmp/log_output:/tmp/test_logs"
+            options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
+                net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
+
+        steps:
+            - name: Dump GitHub context
+              env:
+                  GITHUB_CONTEXT: ${{ toJSON(github) }}
+              run: echo "$GITHUB_CONTEXT"
+            - uses: Wandalen/wretry.action@v1.0.15
+              name: Checkout
+              with:
+                  action: actions/checkout@v3
+                  repository: project-chip/connectedhomeip
+                  ref: ${{ needs.build_prepare.outputs.chip_sha }}
+                  with: |
+                      token: ${{ github.token }}
+                  attempt_limit: 3
+                  attempt_delay: 2000
+            - name: Checkout submodules
+              run: scripts/checkout_submodules.py --shallow --platform linux
+            - name: Bootstrap
+              timeout-minutes: 10
+              run: scripts/build/gn_bootstrap.sh
+            - name: Setup Build, Run Build and Run Tests
+              timeout-minutes: 50
+              run: |
+                  scripts/build/gn_gen.sh --args="enable_rtti=true enable_pylib=true chip_config_memory_debug_checks=false chip_config_memory_debug_dmalloc=false"
+                  scripts/run_in_build_env.sh "ninja -C ./out"
+                  scripts/tests/gn_tests.sh
+            - name: Run Python library specific unit tests
+              timeout-minutes: 5
+              run: |
+                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/chip_core-0.0-cp37-abi3-linux_x86_64.whl'
+                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/chip_clusters-0.0-py3-none-any.whl'
+                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/chip_repl-0.0-py3-none-any.whl'
+                  scripts/run_in_build_env.sh '(cd src/controller/python/test/unit_tests/ && python3 -m unittest -v)'
+
+
