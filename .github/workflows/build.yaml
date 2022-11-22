@@ -90,7 +90,22 @@ jobs:
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_clusters-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
                   scripts/run_in_build_env.sh '(cd src/controller/python/test/unit_tests/ && python3 -m unittest -v)'
-            - uses: actions/upload-artifact@v3
+            - name: Upload wheels as artifacts
+              uses: actions/upload-artifact@v3
               with:
                 name: chip-wheels
                 path: project-chip/out/controller/python/*.whl
+            - name: Upload wheels as release assets
+              uses: softprops/action-gh-release@v1
+              if: startsWith(github.ref, 'refs/tags/')
+              with:
+                files: project-chip/out/controller/python/*.whl
+            - name: Upload wheels to PyPI
+              if: startsWith(github.ref, 'refs/tags/')
+              env:
+                  TWINE_USERNAME: "__token__"
+                  TWINE_PASSWORD: ${{ secrets.TWINE_TOKEN }}
+                  TWINE_REPOSITORY: "testpypi"
+              run: |
+                  python3 -m pip install twine build
+                  python3 -m twine upload project-chip/out/controller/python/*.whl --skip-existing
