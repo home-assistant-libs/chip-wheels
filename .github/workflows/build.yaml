@@ -69,6 +69,8 @@ jobs:
               run: |
                   patch -p1 < ../0001-python-fix-platform-specific-wheel-to-be-spec-compli.patch
                   patch -p1 < ../0001-python-allow-to-customize-wheel-package-name-and-ver.patch
+                  git status
+                  git diff
             - name: Setup Build, Run Build and Run Tests
               timeout-minutes: 50
               run: |
@@ -81,7 +83,12 @@ jobs:
                                                   chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
                                                   chip_python_package_prefix=\"home-assistant-chip\" \
                                                   "
+                  git diff
                   scripts/run_in_build_env.sh "ninja -C ./out chip-repl"
+            - name: Check diff
+              run: |
+                  git status
+                  git diff
             - name: Run Python library specific unit tests
               timeout-minutes: 5
               run: |
