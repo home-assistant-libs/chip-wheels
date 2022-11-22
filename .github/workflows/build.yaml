@@ -67,8 +67,10 @@ jobs:
               run: scripts/build/gn_bootstrap.sh
             - name: Apply patches
               run: |
-                  patch -p1 < ../0001-python-fix-platform-specific-wheel-to-be-spec-compli.patch
-                  patch -p1 < ../0001-python-allow-to-customize-wheel-package-name-and-ver.patch
+                  git config --global user.email "ci@home-assistant.io"
+                  git config --global user.name "CI"
+                  git am ../0001-python-fix-platform-specific-wheel-to-be-spec-compli.patch
+                  git am ../0001-python-allow-to-customize-wheel-package-name-and-ver.patch
                   git status
                   git diff
             - name: Setup Build, Run Build and Run Tests
