@@ -108,4 +108,4 @@ jobs:
                   TWINE_REPOSITORY: "testpypi"
               run: |
                   python3 -m pip install twine build
-                  python3 -m twine upload project-chip/out/controller/python/*.whl --skip-existing
+                  python3 -m twine upload out/controller/python/*.whl --skip-existing
