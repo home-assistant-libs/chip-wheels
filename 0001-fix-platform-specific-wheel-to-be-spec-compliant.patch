@@ -1,8 +1,8 @@
-From 8411ede3a38931a5f6987ab3b9bbee4560e53fb8 Mon Sep 17 00:00:00 2001
-Message-Id: <8411ede3a38931a5f6987ab3b9bbee4560e53fb8.1669049109.git.stefan@agner.ch>
+From 4f5980786f9164ac897b83eefe6eedb917a903bb Mon Sep 17 00:00:00 2001
+Message-Id: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Mon, 21 Nov 2022 15:47:06 +0100
-Subject: [PATCH 1/2] [python] fix platform specific wheel to be spec compliant
+Subject: [PATCH] fix platform specific wheel to be spec compliant
 
 The current build approach causes bdist_wheel to store the shared library
 in the purelib folder. However, a platform specific wheel should have
@@ -22,7 +22,7 @@ This makes the wheel pass `auditwheel check`.
  1 file changed, 8 insertions(+), 11 deletions(-)
 
 diff --git a/src/controller/python/build-chip-wheel.py b/src/controller/python/build-chip-wheel.py
-index e3ab5312ca..20e74cf061 100644
+index e3ab5312c..20e74cf06 100644
 --- a/src/controller/python/build-chip-wheel.py
 +++ b/src/controller/python/build-chip-wheel.py
 @@ -23,7 +23,7 @@

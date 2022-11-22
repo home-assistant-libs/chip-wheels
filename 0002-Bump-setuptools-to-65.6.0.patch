@@ -1,5 +1,7 @@
-From 2a63cf80d2a54d655810ff17e1becea592a0c36a Mon Sep 17 00:00:00 2001
-Message-Id: <2a63cf80d2a54d655810ff17e1becea592a0c36a.1669109190.git.stefan@agner.ch>
+From 452aed41fc4d8f501e7759218b6e8374df2b8460 Mon Sep 17 00:00:00 2001
+Message-Id: <452aed41fc4d8f501e7759218b6e8374df2b8460.1669113141.git.stefan@agner.ch>
+In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
+References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:25:32 +0100
 Subject: [PATCH] Bump setuptools to 65.6.0
@@ -9,7 +11,7 @@ Subject: [PATCH] Bump setuptools to 65.6.0
  1 file changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/scripts/constraints.txt b/scripts/constraints.txt
-index d80489ae43..d7fc4d6d52 100644
+index f29bbc7d5..1cf411fe2 100644
 --- a/scripts/constraints.txt
 +++ b/scripts/constraints.txt
 @@ -2,7 +2,7 @@
@@ -21,7 +23,7 @@ index d80489ae43..d7fc4d6d52 100644
  #
  anytree==2.8.0
      # via -r requirements.txt
-@@ -316,5 +316,12 @@ wheel==0.36.2
+@@ -336,5 +336,12 @@ wheel==0.36.2
      # via -r requirements.txt
  
  # The following packages are considered to be unsafe in a requirements file:

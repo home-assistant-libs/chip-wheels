@@ -1,5 +1,7 @@
-From b3293e911107db22ec2d968e0c289e805e7314cb Mon Sep 17 00:00:00 2001
-Message-Id: <b3293e911107db22ec2d968e0c289e805e7314cb.1669065587.git.stefan@agner.ch>
+From 83a30a0038bf48be5bb60fc871e2a2ec446d9e66 Mon Sep 17 00:00:00 2001
+Message-Id: <83a30a0038bf48be5bb60fc871e2a2ec446d9e66.1669113141.git.stefan@agner.ch>
+In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
+References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Mon, 21 Nov 2022 18:04:49 +0100
 Subject: [PATCH] [python] allow to customize wheel package name and version
@@ -10,7 +12,7 @@ Allow to customize the wheel package name as well as its version.
  1 file changed, 13 insertions(+), 7 deletions(-)
 
 diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index af1bcd7fb2..c892038c89 100644
+index bd70e093d..6cb62d1c9 100644
 --- a/src/controller/python/BUILD.gn
 +++ b/src/controller/python/BUILD.gn
 @@ -30,7 +30,10 @@ config("controller_wno_deprecate") {
@@ -25,7 +27,7 @@ index af1bcd7fb2..c892038c89 100644
  
  shared_library("ChipDeviceCtrl") {
    if (chip_controller) {
-@@ -336,11 +339,12 @@ chip_python_wheel_action("chip-core") {
+@@ -327,11 +330,12 @@ chip_python_wheel_action("chip-core") {
      lib_name = "_ChipServer.so"
    }
  
@@ -40,7 +42,7 @@ index af1bcd7fb2..c892038c89 100644
  }
  
  chip_python_wheel_action("chip-clusters") {
-@@ -373,10 +377,11 @@ chip_python_wheel_action("chip-clusters") {
+@@ -364,10 +368,11 @@ chip_python_wheel_action("chip-clusters") {
  
    py_package_reqs = [ "dacite" ]
  
@@ -54,7 +56,7 @@ index af1bcd7fb2..c892038c89 100644
  }
  
  chip_python_wheel_action("chip-repl") {
-@@ -417,7 +422,8 @@ chip_python_wheel_action("chip-repl") {
+@@ -408,7 +413,8 @@ chip_python_wheel_action("chip-repl") {
      "mobly",
    ]
  
@@ -64,7 +66,7 @@ index af1bcd7fb2..c892038c89 100644
    py_platform_tag = "any"
  
    data_deps = [
-@@ -425,5 +431,5 @@ chip_python_wheel_action("chip-repl") {
+@@ -416,5 +422,5 @@ chip_python_wheel_action("chip-repl") {
      ":chip-core",
    ]
  

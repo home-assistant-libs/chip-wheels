@@ -1,0 +1,80 @@
+From 4cfe58019f31235b454f6d2427a7b9bbb5291b7e Mon Sep 17 00:00:00 2001
+Message-Id: <4cfe58019f31235b454f6d2427a7b9bbb5291b7e.1669113141.git.stefan@agner.ch>
+In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
+References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
+From: yunhanw-google <yunhanw@google.com>
+Date: Mon, 14 Nov 2022 12:16:33 -0800
+Subject: [PATCH] remove unused python-dbus (#23564)
+
+* remove unused python-dbus
+
+* Restyled by gn
+
+Co-authored-by: Restyled.io <commits@restyled.io>
+---
+ scripts/constraints.txt                         | 4 +---
+ scripts/requirements.txt                        | 3 +--
+ src/controller/python/BUILD.gn                  | 5 +----
+ src/pybindings/pycontroller/build-chip-wheel.py | 1 -
+ 4 files changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/scripts/constraints.txt b/scripts/constraints.txt
+index 1cf411fe2..95587153f 100644
+--- a/scripts/constraints.txt
++++ b/scripts/constraints.txt
+@@ -61,9 +61,7 @@ cryptography==3.4.7
+     # via
+     #   -c constraints.esp32.txt
+     #   -r requirements.txt
+-cxxfilt==0.2.2
+-    # via -r requirements.txt
+-dbus-python==1.2.18 ; sys_platform == "linux"
++cxxfilt==0.2.2 ; sys_platform == "linux"
+     # via -r requirements.txt
+ decorator==5.0.9
+     # via ipython
+diff --git a/scripts/requirements.txt b/scripts/requirements.txt
+index e33963c48..31c493496 100644
+--- a/scripts/requirements.txt
++++ b/scripts/requirements.txt
+@@ -15,8 +15,7 @@ virtualenv
+ requests>=2.24.0
+ 
+ # device controller wheel package
+-wheel
+-dbus-python==1.2.18; sys_platform == 'linux'
++wheel; sys_platform == 'linux'
+ pgi; sys_platform == 'linux'
+ pyobjc-core; sys_platform == 'darwin'
+ pyobjc-framework-cocoa; sys_platform == 'darwin'
+diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
+index 890c7fc85..bd70e093d 100644
+--- a/src/controller/python/BUILD.gn
++++ b/src/controller/python/BUILD.gn
+@@ -297,10 +297,7 @@ chip_python_wheel_action("chip-core") {
+   if (current_os == "mac") {
+     py_package_reqs += [ "pyobjc-framework-corebluetooth" ]
+   } else if (current_os == "linux") {
+-    py_package_reqs += [
+-      "dbus-python==1.2.18",
+-      "pygobject",
+-    ]
++    py_package_reqs += [ "pygobject" ]
+   }
+ 
+   if (current_cpu == "x64") {
+diff --git a/src/pybindings/pycontroller/build-chip-wheel.py b/src/pybindings/pycontroller/build-chip-wheel.py
+index 2bc04f43c..d1de59224 100644
+--- a/src/pybindings/pycontroller/build-chip-wheel.py
++++ b/src/pybindings/pycontroller/build-chip-wheel.py
+@@ -123,7 +123,6 @@ try:
+         requiredPackages.append('pyobjc-framework-corebluetooth')
+ 
+     if platform.system() == 'Linux':
+-        requiredPackages.append('dbus-python==1.2.18')
+         requiredPackages.append('pygobject')
+ 
+     #
+-- 
+2.38.1
+

@@ -64,10 +64,11 @@ jobs:
               run: scripts/checkout_submodules.py --shallow --platform linux
             - name: Apply patches
               run: |
-                  patch -p1 < ../0001-python-fix-platform-specific-wheel-to-be-spec-compli.patch
-                  patch -p1 < ../0001-Bump-setuptools-to-65.6.0.patch
-                  patch -p1 < ../0001-python-allow-to-customize-wheel-package-name-and-ver.patch
-                  patch -p1 < ../0001-Support-custom-platform-tag.patch
+                  patch -p1 < ../0001-fix-platform-specific-wheel-to-be-spec-compliant.patch
+                  patch -p1 < ../0002-Bump-setuptools-to-65.6.0.patch
+                  patch -p1 < ../0003-remove-unused-python-dbus-23564.patch
+                  patch -p1 < ../0004-python-allow-to-customize-wheel-package-name-and-ver.patch
+                  patch -p1 < ../0005-Support-custom-platform-tag.patch
             - name: Bootstrap
               timeout-minutes: 10
               run: scripts/build/gn_bootstrap.sh
