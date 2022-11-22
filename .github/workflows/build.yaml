@@ -85,6 +85,8 @@ jobs:
                                                   chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
                                                   chip_python_package_prefix=\"home-assistant-chip\" \
                                                   "
+                  cd out
+                  python3 ../src/controller/python/build-chip-wheel.py --package_name chip-core --build_number 0.0 --build_dir gen/src/controller/python/chip-core.py_build --dist_dir controller/python --manifest gen/src/controller/python/chip-core.py_manifest.json --plat-name linux_x86_64 --lib-name _ChipDeviceCtrl.so
                   git diff
                   scripts/run_in_build_env.sh "ninja -C ./out chip-repl"
             - name: Check diff
