@@ -7,16 +7,11 @@ jobs:
         name: Prepare build
         runs-on: ubuntu-latest
         outputs:
-            chip_sha: ${{ steps.determine_sha.outputs.chip_sha }}
             version: ${{ steps.version.outputs.version }}
             channel: ${{ steps.version.outputs.channel }}
         steps:
             - name: Checkout build repository
               uses: actions/checkout@v3
-            - name: Determine version
-              id: determine_sha
-              run: |
-                  echo "chip_sha=a17c005209fbde737edb97b0f51ea63472c166aa" >> $GITHUB_OUTPUT
             - name: Get version
               id: version
               uses: home-assistant/actions/helpers/version@master
@@ -54,7 +49,7 @@ jobs:
               with:
                   action: actions/checkout@v3
                   repository: project-chip/connectedhomeip
-                  ref: ${{ needs.build_prepare.outputs.chip_sha }}
+                  ref: 47448899e3836cbc48688f3f5c84054d33307643
                   path: ./project-chip
                   with: |
                       token: ${{ github.token }}
