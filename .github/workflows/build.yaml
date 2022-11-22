@@ -84,7 +84,7 @@ jobs:
             - name: Run Python library specific unit tests
               timeout-minutes: 5
               run: |
-                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-linux_x86_64.whl'
+                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-manylinux_2_31_x86_64.whl'
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_clusters-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
                   scripts/run_in_build_env.sh '(cd src/controller/python/test/unit_tests/ && python3 -m unittest -v)'
