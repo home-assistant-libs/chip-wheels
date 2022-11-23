@@ -27,12 +27,13 @@ jobs:
             matrix:
                 arch:
                     - name: x86_64
-                      #                      container: connectedhomeip/chip-build:0.5.99
-                      container: agners/aarch64-chip-build:0.5.99
+                      container: connectedhomeip/chip-build:0.5.99
+                      runner: ubuntu-22.04
                     - name: aarch64
                       container: agners/aarch64-chip-build:0.5.99
+                      runner: ARM64
 
-        runs-on: ubuntu-22.04
+        runs-on: ${{ matrix.arch.runner }}
         permissions:
             contents: write  # for actions/upload-release-asset to upload release asset
 
@@ -44,7 +45,7 @@ jobs:
             image: ${{ matrix.arch.container }}
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
-            options: --platform linux/arm64 --sysctl "net.ipv6.conf.all.disable_ipv6=0
+            options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
                 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
         steps:
