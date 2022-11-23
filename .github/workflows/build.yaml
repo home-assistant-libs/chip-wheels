@@ -19,15 +19,17 @@ jobs:
               uses: home-assistant/actions/helpers/version@master
 
     build_linux_python_lib:
-        name: Build Python wheels for Linux (${{ matrix.container }})
+        name: Build Python wheels for Linux (${{ matrix.arch.name }})
         needs: build_prepare
         timeout-minutes: 60
 
         strategy:
             matrix:
-                container:
-                    - connectedhomeip/chip-build:0.5.99
-                    - agners/aarch64-chip-build:0.5.99
+                arch:
+                    - name: x86_64
+                      container: connectedhomeip/chip-build:0.5.99
+                    - name: aarch64
+                      container: agners/aarch64-chip-build:0.5.99
 
         runs-on: ubuntu-latest
         permissions:
@@ -38,7 +40,7 @@ jobs:
                 working-directory: ./project-chip
 
         container:
-            image: ${{ matrix.container }}
+            image: ${{ matrix.arch.container }}
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
             options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
@@ -89,7 +91,7 @@ jobs:
             - name: Run Python library specific unit tests
               timeout-minutes: 5
               run: |
-                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-manylinux_2_31_$(uname -r).whl'
+                  scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-manylinux_2_31_${{ matrix.arch.name }}.whl'
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_clusters-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
                   scripts/run_in_build_env.sh '(cd src/controller/python/test/unit_tests/ && python3 -m unittest -v)'
