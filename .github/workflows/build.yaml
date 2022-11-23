@@ -32,7 +32,7 @@ jobs:
                     - name: aarch64
                       container: agners/aarch64-chip-build:0.5.99
 
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         permissions:
             contents: write  # for actions/upload-release-asset to upload release asset
 
