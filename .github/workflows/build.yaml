@@ -21,7 +21,6 @@ jobs:
     build_linux_python_lib:
         name: Build Python wheels for Linux (${{ matrix.arch.name }})
         needs: build_prepare
-        timeout-minutes: 60
 
         strategy:
             matrix:
@@ -74,10 +73,8 @@ jobs:
                   patch -p1 < ../0006-Revert-Python-dependencies.patch
                   patch -p1 < ../0007-Use-data-as-platform-storage-location.patch
             - name: Bootstrap
-              timeout-minutes: 10
               run: scripts/build/gn_bootstrap.sh
             - name: Setup Build, Run Build and Run Tests
-              timeout-minutes: 50
               run: |
                   scripts/build/gn_gen.sh --args=" \
                                                   enable_rtti=true \
@@ -91,7 +88,6 @@ jobs:
                                                   "
                   scripts/run_in_build_env.sh "ninja -C ./out chip-repl"
             - name: Run Python library specific unit tests
-              timeout-minutes: 5
               run: |
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-manylinux_2_31_${{ matrix.arch.name }}.whl'
                   scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_clusters-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
