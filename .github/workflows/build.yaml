@@ -61,6 +61,8 @@ jobs:
                   patch -p1 < ../0003-remove-unused-python-dbus-23564.patch
                   patch -p1 < ../0004-python-allow-to-customize-wheel-package-name-and-ver.patch
                   patch -p1 < ../0005-Support-custom-platform-tag.patch
+                  patch -p1 < ../0006-Revert-Python-dependencies.patch
+                  patch -p1 < ../0007-Use-data-as-platform-storage-location.patch
             - name: Bootstrap
               timeout-minutes: 10
               run: scripts/build/gn_bootstrap.sh

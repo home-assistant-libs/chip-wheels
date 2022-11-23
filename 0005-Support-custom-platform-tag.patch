@@ -1,7 +1,7 @@
 From 47f6d7bc6ec6557cf289dde766abc8a5bd3499da Mon Sep 17 00:00:00 2001
-Message-Id: <47f6d7bc6ec6557cf289dde766abc8a5bd3499da.1669113141.git.stefan@agner.ch>
-In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
-References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
+Message-Id: <47f6d7bc6ec6557cf289dde766abc8a5bd3499da.1669213981.git.stefan@agner.ch>
+In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
+References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag

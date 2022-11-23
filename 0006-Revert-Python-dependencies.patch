@@ -1,0 +1,32 @@
+From 5cee8a9158b6cfdb6f0f067a630844097794dd0e Mon Sep 17 00:00:00 2001
+Message-Id: <5cee8a9158b6cfdb6f0f067a630844097794dd0e.1669213981.git.stefan@agner.ch>
+In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
+References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
+From: Stefan Agner <stefan@agner.ch>
+Date: Mon, 19 Sep 2022 23:05:51 +0200
+Subject: [PATCH] Revert Python dependencies
+
+Remove the crypto libraries. They are not required in regular use.
+---
+ src/controller/python/BUILD.gn | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
+index 17fd4528c..4c93c0ebe 100644
+--- a/src/controller/python/BUILD.gn
++++ b/src/controller/python/BUILD.gn
+@@ -299,11 +299,6 @@ chip_python_wheel_action("chip-core") {
+     "ipdb",
+     "deprecation",
+     "mobly",
+-
+-    # Crypto libraries for complex tests and internal Python controller usage
+-    "cryptography",
+-    "pycrypto",
+-    "ecdsa",
+   ]
+ 
+   if (current_os == "mac") {
+-- 
+2.38.1
+

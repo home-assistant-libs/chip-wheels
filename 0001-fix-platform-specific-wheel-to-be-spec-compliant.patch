@@ -1,5 +1,5 @@
 From 4f5980786f9164ac897b83eefe6eedb917a903bb Mon Sep 17 00:00:00 2001
-Message-Id: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
+Message-Id: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Mon, 21 Nov 2022 15:47:06 +0100
 Subject: [PATCH] fix platform specific wheel to be spec compliant

@@ -1,7 +1,7 @@
 From 83a30a0038bf48be5bb60fc871e2a2ec446d9e66 Mon Sep 17 00:00:00 2001
-Message-Id: <83a30a0038bf48be5bb60fc871e2a2ec446d9e66.1669113141.git.stefan@agner.ch>
-In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
-References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669113141.git.stefan@agner.ch>
+Message-Id: <83a30a0038bf48be5bb60fc871e2a2ec446d9e66.1669213981.git.stefan@agner.ch>
+In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
+References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Mon, 21 Nov 2022 18:04:49 +0100
 Subject: [PATCH] [python] allow to customize wheel package name and version
