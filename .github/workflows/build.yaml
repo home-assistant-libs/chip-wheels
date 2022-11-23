@@ -27,7 +27,8 @@ jobs:
             matrix:
                 arch:
                     - name: x86_64
-                      container: connectedhomeip/chip-build:0.5.99
+                      #                      container: connectedhomeip/chip-build:0.5.99
+                      container: agners/aarch64-chip-build:0.5.99
                     - name: aarch64
                       container: agners/aarch64-chip-build:0.5.99
 
@@ -43,7 +44,7 @@ jobs:
             image: ${{ matrix.arch.container }}
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
-            options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
+            options: --platform linux/arm64 --sysctl "net.ipv6.conf.all.disable_ipv6=0
                 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
         steps:
