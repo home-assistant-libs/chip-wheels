@@ -112,6 +112,8 @@ jobs:
               run: |
                   python3 -m pip install twine build
                   python3 -m twine upload out/controller/python/home_assistant_chip_clusters-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl --skip-existing
+                  python3 -m twine upload out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-manylinux_2_31_${{ matrix.arch.name }}.whl --skip-existing
+                  python3 -m twine upload out/controller/python/home_assistant_chip_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl --skip-existing
             - name: Upload wheels to Test PyPI
               env:
                   TWINE_USERNAME: "__token__"
@@ -119,4 +121,6 @@ jobs:
                   TWINE_REPOSITORY: "testpypi"
               run: |
                   python3 -m pip install twine build
-                  python3 -m twine upload out/controller/python/*.whl --skip-existing
+                  python3 -m twine upload out/controller/python/home_assistant_chip_clusters-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl --skip-existing
+                  python3 -m twine upload out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-manylinux_2_31_${{ matrix.arch.name }}.whl --skip-existing
+                  python3 -m twine upload out/controller/python/home_assistant_chip_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl --skip-existing
