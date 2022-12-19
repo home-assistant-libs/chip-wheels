@@ -7,7 +7,7 @@ jobs:
         name: Prepare build
         runs-on: ubuntu-latest
         outputs:
-            version: ${{ steps.version.outputs.version }}
+            version: ${{ steps.python-version.outputs.value }}
             channel: ${{ steps.version.outputs.channel }}
         steps:
             - name: Checkout build repository
@@ -17,6 +17,14 @@ jobs:
             - name: Get version
               id: version
               uses: home-assistant/actions/helpers/version@master
+            - name: Find-and-replace strings
+              id: python-version
+              uses: mad9000/actions-find-and-replace-string@3
+              with:
+                source: ${{ steps.version.outputs.version }}
+                find: '-'
+                replace: '_'
+                replaceAll: true
 
     build_linux_python_lib:
         name: Build Python wheels for Linux (${{ matrix.arch.name }})
