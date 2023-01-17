@@ -67,7 +67,7 @@ jobs:
               uses: actions/checkout@v3
               with:
                   repository: project-chip/connectedhomeip
-                  ref: 3c1d8cf8ce5df84be2d046b687dc4cddd71cc326
+                  ref: 4088a77f557e8571a39338fad51a1d8eb0131d79
                   path: ./project-chip
             - name: Checkout submodules
               run: scripts/checkout_submodules.py --shallow --platform linux
