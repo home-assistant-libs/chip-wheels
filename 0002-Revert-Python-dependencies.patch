@@ -1,7 +1,7 @@
-From 5cee8a9158b6cfdb6f0f067a630844097794dd0e Mon Sep 17 00:00:00 2001
-Message-Id: <5cee8a9158b6cfdb6f0f067a630844097794dd0e.1669213981.git.stefan@agner.ch>
-In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
-References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
+From 476de3f0ff61b91d2547269ee62bc8c2a76a7441 Mon Sep 17 00:00:00 2001
+Message-Id: <476de3f0ff61b91d2547269ee62bc8c2a76a7441.1673964289.git.stefan@agner.ch>
+In-Reply-To: <60ee727300ce3685624cbece545f81d3c6350a8b.1673964289.git.stefan@agner.ch>
+References: <60ee727300ce3685624cbece545f81d3c6350a8b.1673964289.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Mon, 19 Sep 2022 23:05:51 +0200
 Subject: [PATCH] Revert Python dependencies
@@ -12,10 +12,10 @@ Remove the crypto libraries. They are not required in regular use.
  1 file changed, 5 deletions(-)
 
 diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index 17fd4528c..4c93c0ebe 100644
+index 8da839169..8c913d1f9 100644
 --- a/src/controller/python/BUILD.gn
 +++ b/src/controller/python/BUILD.gn
-@@ -299,11 +299,6 @@ chip_python_wheel_action("chip-core") {
+@@ -308,11 +308,6 @@ chip_python_wheel_action("chip-core") {
      "ipdb",
      "deprecation",
      "mobly",
@@ -28,5 +28,5 @@ index 17fd4528c..4c93c0ebe 100644
  
    if (current_os == "mac") {
 -- 
-2.38.1
+2.39.0
 

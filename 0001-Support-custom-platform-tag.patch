@@ -1,17 +1,15 @@
-From 47f6d7bc6ec6557cf289dde766abc8a5bd3499da Mon Sep 17 00:00:00 2001
-Message-Id: <47f6d7bc6ec6557cf289dde766abc8a5bd3499da.1669213981.git.stefan@agner.ch>
-In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
-References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
+From 60ee727300ce3685624cbece545f81d3c6350a8b Mon Sep 17 00:00:00 2001
+Message-Id: <60ee727300ce3685624cbece545f81d3c6350a8b.1673964289.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
 
 ---
- src/controller/python/BUILD.gn | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ src/controller/python/BUILD.gn | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index 6cb62d1c9..17fd4528c 100644
+index a0381f096..8da839169 100644
 --- a/src/controller/python/BUILD.gn
 +++ b/src/controller/python/BUILD.gn
 @@ -33,6 +33,15 @@ config("controller_wno_deprecate") {
@@ -30,13 +28,15 @@ index 6cb62d1c9..17fd4528c 100644
  }
  
  shared_library("ChipDeviceCtrl") {
-@@ -313,14 +322,7 @@ chip_python_wheel_action("chip-core") {
+@@ -322,16 +331,7 @@ chip_python_wheel_action("chip-core") {
      cpu_tag = current_cpu
    }
  
 -  if (current_os == "mac") {
--    py_platform_tag =
--        "macosx_" + string_replace(mac_deployment_target, ".", "_")
+-    py_platform_tag = string_replace(
+-            string_replace(mac_deployment_target, "macos", "macosx."),
+-            ".",
+-            "_")
 -  } else {
 -    py_platform_tag = current_os
 -  }
@@ -47,5 +47,5 @@ index 6cb62d1c9..17fd4528c 100644
    tags = "cp37-abi3-" + py_platform_tag
  
 -- 
-2.38.1
+2.39.0
 
