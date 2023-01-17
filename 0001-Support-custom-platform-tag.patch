@@ -1,15 +1,15 @@
-From 4fd0ee1dc60d11c86d638bcc67b322e2d1746b4d Mon Sep 17 00:00:00 2001
-Message-Id: <4fd0ee1dc60d11c86d638bcc67b322e2d1746b4d.1673952314.git.stefan@agner.ch>
+From 60ee727300ce3685624cbece545f81d3c6350a8b Mon Sep 17 00:00:00 2001
+Message-Id: <60ee727300ce3685624cbece545f81d3c6350a8b.1673964289.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
 
 ---
- src/controller/python/BUILD.gn | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ src/controller/python/BUILD.gn | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index a0381f096..8e7e21b02 100644
+index a0381f096..8da839169 100644
 --- a/src/controller/python/BUILD.gn
 +++ b/src/controller/python/BUILD.gn
 @@ -33,6 +33,15 @@ config("controller_wno_deprecate") {
@@ -28,20 +28,19 @@ index a0381f096..8e7e21b02 100644
  }
  
  shared_library("ChipDeviceCtrl") {
-@@ -323,15 +332,15 @@ chip_python_wheel_action("chip-core") {
+@@ -322,16 +331,7 @@ chip_python_wheel_action("chip-core") {
+     cpu_tag = current_cpu
    }
  
-   if (current_os == "mac") {
+-  if (current_os == "mac") {
 -    py_platform_tag = string_replace(
-+    chip_python_platform_tag = string_replace(
-             string_replace(mac_deployment_target, "macos", "macosx."),
-             ".",
-             "_")
-   } else {
+-            string_replace(mac_deployment_target, "macos", "macosx."),
+-            ".",
+-            "_")
+-  } else {
 -    py_platform_tag = current_os
-+    chip_python_platform_tag = current_os
-   }
- 
+-  }
+-
 -  py_platform_tag = py_platform_tag + "_" + cpu_tag
 +  py_platform_tag = chip_python_platform_tag  + "_" + cpu_tag
  
