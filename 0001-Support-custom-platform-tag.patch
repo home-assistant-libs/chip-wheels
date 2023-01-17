@@ -1,17 +1,15 @@
-From 47f6d7bc6ec6557cf289dde766abc8a5bd3499da Mon Sep 17 00:00:00 2001
-Message-Id: <47f6d7bc6ec6557cf289dde766abc8a5bd3499da.1669213981.git.stefan@agner.ch>
-In-Reply-To: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
-References: <4f5980786f9164ac897b83eefe6eedb917a903bb.1669213981.git.stefan@agner.ch>
+From 4fd0ee1dc60d11c86d638bcc67b322e2d1746b4d Mon Sep 17 00:00:00 2001
+Message-Id: <4fd0ee1dc60d11c86d638bcc67b322e2d1746b4d.1673952314.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
 
 ---
- src/controller/python/BUILD.gn | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ src/controller/python/BUILD.gn | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index 6cb62d1c9..17fd4528c 100644
+index a0381f096..8e7e21b02 100644
 --- a/src/controller/python/BUILD.gn
 +++ b/src/controller/python/BUILD.gn
 @@ -33,6 +33,15 @@ config("controller_wno_deprecate") {
@@ -30,22 +28,25 @@ index 6cb62d1c9..17fd4528c 100644
  }
  
  shared_library("ChipDeviceCtrl") {
-@@ -313,14 +322,7 @@ chip_python_wheel_action("chip-core") {
-     cpu_tag = current_cpu
+@@ -323,15 +332,15 @@ chip_python_wheel_action("chip-core") {
    }
  
--  if (current_os == "mac") {
--    py_platform_tag =
--        "macosx_" + string_replace(mac_deployment_target, ".", "_")
--  } else {
+   if (current_os == "mac") {
+-    py_platform_tag = string_replace(
++    chip_python_platform_tag = string_replace(
+             string_replace(mac_deployment_target, "macos", "macosx."),
+             ".",
+             "_")
+   } else {
 -    py_platform_tag = current_os
--  }
--
++    chip_python_platform_tag = current_os
+   }
+ 
 -  py_platform_tag = py_platform_tag + "_" + cpu_tag
 +  py_platform_tag = chip_python_platform_tag  + "_" + cpu_tag
  
    tags = "cp37-abi3-" + py_platform_tag
  
 -- 
-2.38.1
+2.39.0
 

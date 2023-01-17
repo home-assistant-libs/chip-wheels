@@ -34,10 +34,10 @@ jobs:
             matrix:
                 arch:
                     - name: x86_64
-                      container: connectedhomeip/chip-build:0.5.99
+                      container: connectedhomeip/chip-build:0.6.18
                       runner: ubuntu-22.04
                     - name: aarch64
-                      container: agners/aarch64-chip-build:0.5.99
+                      container: agners/aarch64-chip-build:0.6.18
                       runner: ARM64
 
         runs-on: ${{ matrix.arch.runner }}
@@ -73,13 +73,9 @@ jobs:
               run: scripts/checkout_submodules.py --shallow --platform linux
             - name: Apply patches
               run: |
-                  patch -p1 < ../0001-fix-platform-specific-wheel-to-be-spec-compliant.patch
-                  patch -p1 < ../0002-Bump-setuptools-to-65.6.0.patch
-                  patch -p1 < ../0003-remove-unused-python-dbus-23564.patch
-                  patch -p1 < ../0004-python-allow-to-customize-wheel-package-name-and-ver.patch
-                  patch -p1 < ../0005-Support-custom-platform-tag.patch
-                  patch -p1 < ../0006-Revert-Python-dependencies.patch
-                  patch -p1 < ../0007-Use-data-as-platform-storage-location.patch
+                  patch -p1 < ../0001-Support-custom-platform-tag.patch
+                  patch -p1 < ../0002-Revert-Python-dependencies.patch
+                  patch -p1 < ../0003-Use-data-as-platform-storage-location.patch
             - name: Bootstrap
               run: scripts/build/gn_bootstrap.sh
             - name: Setup Build, Run Build and Run Tests
