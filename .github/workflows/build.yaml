@@ -89,6 +89,7 @@ jobs:
                   patch -p1 < ../0001-Support-custom-platform-tag.patch
                   patch -p1 < ../0002-Revert-Python-dependencies.patch
                   patch -p1 < ../0003-Use-data-as-platform-storage-location.patch
+                  patch -p1 < ../0004-Drop-pygobject-dependency.patch
             - name: Bootstrap
               run: scripts/build/gn_bootstrap.sh
             - name: Setup Build, Run Build and Run Tests
