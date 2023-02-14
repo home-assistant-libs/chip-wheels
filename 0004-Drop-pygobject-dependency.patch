@@ -1,0 +1,43 @@
+From 6aa8bceb2fbe34e746c9cf78b9857ab1434236f1 Mon Sep 17 00:00:00 2001
+Message-Id: <6aa8bceb2fbe34e746c9cf78b9857ab1434236f1.1676381983.git.stefan@agner.ch>
+In-Reply-To: <60ee727300ce3685624cbece545f81d3c6350a8b.1676381983.git.stefan@agner.ch>
+References: <60ee727300ce3685624cbece545f81d3c6350a8b.1676381983.git.stefan@agner.ch>
+From: Stefan Agner <stefan@agner.ch>
+Date: Tue, 14 Feb 2023 14:37:54 +0100
+Subject: [PATCH] Drop pygobject dependency
+
+---
+ src/controller/python/BUILD.gn                  | 2 --
+ src/pybindings/pycontroller/build-chip-wheel.py | 3 ---
+ 2 files changed, 5 deletions(-)
+
+diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
+index 8c913d1f9..8f0a40a1f 100644
+--- a/src/controller/python/BUILD.gn
++++ b/src/controller/python/BUILD.gn
+@@ -312,8 +312,6 @@ chip_python_wheel_action("chip-core") {
+ 
+   if (current_os == "mac") {
+     py_package_reqs += [ "pyobjc-framework-corebluetooth" ]
+-  } else if (current_os == "linux") {
+-    py_package_reqs += [ "pygobject" ]
+   }
+ 
+   if (current_cpu == "x64") {
+diff --git a/src/pybindings/pycontroller/build-chip-wheel.py b/src/pybindings/pycontroller/build-chip-wheel.py
+index d1de59224..8d913b43d 100644
+--- a/src/pybindings/pycontroller/build-chip-wheel.py
++++ b/src/pybindings/pycontroller/build-chip-wheel.py
+@@ -122,9 +122,6 @@ try:
+     if platform.system() == 'Darwin':
+         requiredPackages.append('pyobjc-framework-corebluetooth')
+ 
+-    if platform.system() == 'Linux':
+-        requiredPackages.append('pygobject')
+-
+     #
+     # Build the chip package...
+     #
+-- 
+2.39.1
+
