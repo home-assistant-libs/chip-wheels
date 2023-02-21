@@ -91,6 +91,7 @@ jobs:
                   patch -p1 < ../0003-Use-data-as-platform-storage-location.patch
                   patch -p1 < ../0004-Drop-pygobject-dependency.patch
                   patch -p1 < ../0005-Fix-Objects.py-for-Python-3.11-compatibility.patch
+                  patch -p1 < ../0006-Add-lookup-dicts-for-clusters-and-attributes.patch
             - name: Bootstrap
               run: scripts/build/gn_bootstrap.sh
             - name: Setup Build, Run Build and Run Tests
