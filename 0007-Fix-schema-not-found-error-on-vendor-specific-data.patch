@@ -1,0 +1,53 @@
+From 487dd7eb7f7d52e7050770abde0cf0f16ac7e07d Mon Sep 17 00:00:00 2001
+Message-Id: <487dd7eb7f7d52e7050770abde0cf0f16ac7e07d.1681718701.git.stefan@agner.ch>
+In-Reply-To: <60ee727300ce3685624cbece545f81d3c6350a8b.1681718701.git.stefan@agner.ch>
+References: <60ee727300ce3685624cbece545f81d3c6350a8b.1681718701.git.stefan@agner.ch>
+From: Marcel van der Veldt <m.vanderveldt@outlook.com>
+Date: Mon, 17 Apr 2023 09:39:20 +0200
+Subject: [PATCH] Fix schema not found error on vendor specific data
+
+---
+ src/controller/python/chip/clusters/Attribute.py | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/src/controller/python/chip/clusters/Attribute.py b/src/controller/python/chip/clusters/Attribute.py
+index 68499a5b9..4272501bf 100644
+--- a/src/controller/python/chip/clusters/Attribute.py
++++ b/src/controller/python/chip/clusters/Attribute.py
+@@ -147,7 +147,7 @@ class TypedAttributePath:
+                     break
+ 
+             if (self.ClusterType is None or self.AttributeType is None):
+-                raise Exception("Schema not found")
++                raise KeyError(f"No Schema found for Attribute {Path}")
+ 
+         # Next, let's figure out the label.
+         for field in self.ClusterType.descriptor.Fields:
+@@ -157,7 +157,7 @@ class TypedAttributePath:
+             self.AttributeName = field.Label
+ 
+         if (self.AttributeName is None):
+-            raise Exception("Schema not found")
++            raise KeyError(f"Unable to resolve name for Attribute {Path}")
+ 
+         self.Path = Path
+         self.ClusterId = self.ClusterType.id
+@@ -746,8 +746,14 @@ class AsyncReadTransaction:
+ 
+         if (self._subscription_handler is not None):
+             for change in self._changedPathSet:
++                try:
++                    attribute_path = TypedAttributePath(Path=change)
++                except (KeyError, ValueError) as err:
++                    # path could not be resolved into a TypedAttributePath
++                    logging.getLogger(__name__).exception(err)
++                    continue
+                 self._subscription_handler.OnAttributeChangeCb(
+-                    TypedAttributePath(Path=change), self._subscription_handler)
++                    attribute_path, self._subscription_handler)
+ 
+             # Clear it out once we've notified of all changes in this transaction.
+         self._changedPathSet = set()
+-- 
+2.40.0
+
