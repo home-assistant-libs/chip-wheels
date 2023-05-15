@@ -80,19 +80,17 @@ jobs:
               uses: actions/checkout@v3
               with:
                   repository: project-chip/connectedhomeip
-                  ref: 4088a77f557e8571a39338fad51a1d8eb0131d79
+                  ref: v1.1.0.1
                   path: ./project-chip
             - name: Checkout submodules
               run: scripts/checkout_submodules.py --shallow --platform linux
             - name: Apply patches
               run: |
-                  patch -p1 < ../0001-Support-custom-platform-tag.patch
-                  patch -p1 < ../0002-Revert-Python-dependencies.patch
-                  patch -p1 < ../0003-Use-data-as-platform-storage-location.patch
-                  patch -p1 < ../0004-Drop-pygobject-dependency.patch
-                  patch -p1 < ../0005-Fix-Objects.py-for-Python-3.11-compatibility.patch
-                  patch -p1 < ../0006-Add-lookup-dicts-for-clusters-and-attributes.patch
-                  patch -p1 < ../0007-Fix-schema-not-found-error-on-vendor-specific-data.patch
+                  for patch in ../*.patch
+                  do
+                      echo "Applying ${patch}"
+                      patch -p1 < $patch
+                  done
             - name: Bootstrap
               run: scripts/build/gn_bootstrap.sh
             - name: Setup Build, Run Build and Run Tests
