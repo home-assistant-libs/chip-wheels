@@ -8,7 +8,7 @@ env:
 jobs:
     build_prepare:
         name: Prepare build
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         outputs:
             version: ${{ steps.python-version.outputs.value }}
             channel: ${{ steps.version.outputs.channel }}
@@ -66,12 +66,12 @@ jobs:
               run: scripts/run_in_build_env.sh "scripts/codepregen.py ./zzz_pregenerated/"
             - name: Store Matter SDK as tar
               working-directory: ./project-chip
-              run: tar cf ../project-chip.tar --exclude .environment .
+              run: tar -caf ../project-chip.tar.zst --exclude .environment --use-compress-program=zstdmt .
             - name: Store Matter SDK as artifact
               uses: actions/upload-artifact@v3
               with:
                 name: matter-sdk-${{ env.matter_sdk_ref }}
-                path: ./project-chip.tar
+                path: ./project-chip.tar.zst
 
     build_linux_python_lib:
         name: Build Python wheels for Linux (${{ matrix.arch.name }})
@@ -111,7 +111,8 @@ jobs:
               run: |
                 mkdir -p project-chip
                 cd project-chip
-                tar xf ../project-chip.tar .
+                apt update && apt install zstd
+                tar -xaf ../project-chip.tar.zst --use-compress-program=zstdmt .
                 git config --global --add safe.directory "*"
               working-directory: ./
             - name: Bootstrap
