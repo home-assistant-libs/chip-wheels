@@ -64,7 +64,7 @@ jobs:
             - name: ZAP Code pre-generation
               working-directory: ./project-chip
               run: scripts/run_in_build_env.sh "scripts/codepregen.py ./zzz_pregenerated/"
-            - name: Store Matter SDK as tar
+            - name: Create Matter SDK tar
               working-directory: ./project-chip
               run: tar -caf ../project-chip.tar.zst --exclude .environment --use-compress-program=zstdmt .
             - name: Store Matter SDK as artifact
@@ -107,7 +107,7 @@ jobs:
               uses: actions/download-artifact@v3
               with:
                 name: matter-sdk-${{ env.matter_sdk_ref }}
-            - name: Restore Matter SDK from tar
+            - name: Extract Matter SDK from tar
               run: |
                 mkdir -p project-chip
                 cd project-chip
