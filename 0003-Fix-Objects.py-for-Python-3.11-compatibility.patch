@@ -1,7 +1,7 @@
-From b176809a8974a14e56ec1ec48df72f4c3c30fa80 Mon Sep 17 00:00:00 2001
-Message-Id: <b176809a8974a14e56ec1ec48df72f4c3c30fa80.1684168831.git.stefan@agner.ch>
-In-Reply-To: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684168831.git.stefan@agner.ch>
-References: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684168831.git.stefan@agner.ch>
+From 3f8a50b734e1ce2e6babcc77e055fa7836ccfa37 Mon Sep 17 00:00:00 2001
+Message-Id: <3f8a50b734e1ce2e6babcc77e055fa7836ccfa37.1684255084.git.stefan@agner.ch>
+In-Reply-To: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684255084.git.stefan@agner.ch>
+References: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684255084.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Wed, 15 Feb 2023 22:37:09 +0100
 Subject: [PATCH] Fix Objects.py for Python 3.11 compatibility
