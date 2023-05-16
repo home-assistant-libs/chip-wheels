@@ -2,10 +2,13 @@ name: CHIP wheels build
 
 on: push
 
+env:
+  matter_sdk_ref: v1.1.0.1
+
 jobs:
     build_prepare:
         name: Prepare build
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         outputs:
             version: ${{ steps.python-version.outputs.value }}
             channel: ${{ steps.version.outputs.channel }}
@@ -38,6 +41,37 @@ jobs:
                 find: '-'
                 replace: '_'
                 replaceAll: true
+            - name: Checkout CHIP SDK repository
+              uses: actions/checkout@v3
+              with:
+                  repository: project-chip/connectedhomeip
+                  ref: ${{ env.matter_sdk_ref }}
+                  path: ./project-chip
+            - name: Checkout submodules
+              working-directory: ./project-chip
+              run: scripts/checkout_submodules.py --shallow --platform linux
+            - name: Apply patches
+              working-directory: ./project-chip
+              run: |
+                  for patch in ../*.patch
+                  do
+                      echo "Applying ${patch}"
+                      patch -p1 < $patch
+                  done
+            - name: Bootstrap
+              working-directory: ./project-chip
+              run: scripts/build/gn_bootstrap.sh
+            - name: ZAP Code pre-generation
+              working-directory: ./project-chip
+              run: scripts/run_in_build_env.sh "scripts/codepregen.py ./zzz_pregenerated/"
+            - name: Create Matter SDK tar
+              working-directory: ./project-chip
+              run: tar -caf ../project-chip.tar.zst --exclude .environment --use-compress-program=zstdmt .
+            - name: Store Matter SDK as artifact
+              uses: actions/upload-artifact@v3
+              with:
+                name: matter-sdk-${{ env.matter_sdk_ref }}
+                path: ./project-chip.tar.zst
 
     build_linux_python_lib:
         name: Build Python wheels for Linux (${{ matrix.arch.name }})
@@ -47,10 +81,10 @@ jobs:
             matrix:
                 arch:
                     - name: x86_64
-                      container: connectedhomeip/chip-build:0.6.18
+                      container: connectedhomeip/chip-build:0.7.0
                       runner: ubuntu-22.04
                     - name: aarch64
-                      container: agners/aarch64-chip-build:0.6.18
+                      container: agners/aarch64-chip-build:0.7.0
                       runner: ARM64
 
         runs-on: ${{ matrix.arch.runner }}
@@ -69,30 +103,18 @@ jobs:
                 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
         steps:
-            - name: Dump GitHub context
-              env:
-                  GITHUB_CONTEXT: ${{ toJSON(github) }}
-              run: echo "$GITHUB_CONTEXT"
-              working-directory: ./
-            - name: Checkout build repository
-              uses: actions/checkout@v3
-            - name: Checkout CHIP SDK repository
-              uses: actions/checkout@v3
+            - name: Restore Matter SDK from artifacts
+              uses: actions/download-artifact@v3
               with:
-                  repository: project-chip/connectedhomeip
-                  ref: 4088a77f557e8571a39338fad51a1d8eb0131d79
-                  path: ./project-chip
-            - name: Checkout submodules
-              run: scripts/checkout_submodules.py --shallow --platform linux
-            - name: Apply patches
+                name: matter-sdk-${{ env.matter_sdk_ref }}
+            - name: Extract Matter SDK from tar
               run: |
-                  patch -p1 < ../0001-Support-custom-platform-tag.patch
-                  patch -p1 < ../0002-Revert-Python-dependencies.patch
-                  patch -p1 < ../0003-Use-data-as-platform-storage-location.patch
-                  patch -p1 < ../0004-Drop-pygobject-dependency.patch
-                  patch -p1 < ../0005-Fix-Objects.py-for-Python-3.11-compatibility.patch
-                  patch -p1 < ../0006-Add-lookup-dicts-for-clusters-and-attributes.patch
-                  patch -p1 < ../0007-Fix-schema-not-found-error-on-vendor-specific-data.patch
+                mkdir -p project-chip
+                cd project-chip
+                apt update && apt install zstd
+                tar -xaf ../project-chip.tar.zst --use-compress-program=zstdmt .
+                git config --global --add safe.directory "*"
+              working-directory: ./
             - name: Bootstrap
               run: scripts/build/gn_bootstrap.sh
             - name: Setup Build, Run Build and Run Tests
@@ -106,6 +128,7 @@ jobs:
                                                   chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
                                                   chip_python_package_prefix=\"home-assistant-chip\" \
                                                   chip_python_platform_tag=\"manylinux_2_31\" \
+                                                  chip_code_pre_generated_directory=\"$(pwd)/zzz_pregenerated\" \
                                                   "
                   scripts/run_in_build_env.sh "ninja -C ./out chip-repl"
             - name: Run Python library specific unit tests

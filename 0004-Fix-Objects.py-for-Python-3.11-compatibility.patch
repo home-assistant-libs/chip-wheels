@@ -1,30 +1,30 @@
-From fad3e3ebbc9baf5d36cc62b14698ad3cbce02c73 Mon Sep 17 00:00:00 2001
-Message-Id: <fad3e3ebbc9baf5d36cc62b14698ad3cbce02c73.1676497054.git.stefan@agner.ch>
-In-Reply-To: <60ee727300ce3685624cbece545f81d3c6350a8b.1676497054.git.stefan@agner.ch>
-References: <60ee727300ce3685624cbece545f81d3c6350a8b.1676497054.git.stefan@agner.ch>
+From b176809a8974a14e56ec1ec48df72f4c3c30fa80 Mon Sep 17 00:00:00 2001
+Message-Id: <b176809a8974a14e56ec1ec48df72f4c3c30fa80.1684168831.git.stefan@agner.ch>
+In-Reply-To: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684168831.git.stefan@agner.ch>
+References: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684168831.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Wed, 15 Feb 2023 22:37:09 +0100
 Subject: [PATCH] Fix Objects.py for Python 3.11 compatibility
 
 ---
- .../python/chip/clusters/Objects.py           | 334 +++++++++---------
- 1 file changed, 167 insertions(+), 167 deletions(-)
+ .../python/chip/clusters/Objects.py           | 338 +++++++++---------
+ 1 file changed, 169 insertions(+), 169 deletions(-)
 
 diff --git a/src/controller/python/chip/clusters/Objects.py b/src/controller/python/chip/clusters/Objects.py
-index b349d7345..557c4588a 100644
+index 224ef39d75..2981071800 100644
 --- a/src/controller/python/chip/clusters/Objects.py
 +++ b/src/controller/python/chip/clusters/Objects.py
-@@ -30,7 +30,7 @@ from chip import ChipUtility
- from chip.tlv import uint, float32
+@@ -34,7 +34,7 @@ from chip.tlv import float32, uint
  
- from .ClusterObjects import ClusterObject, ClusterObjectDescriptor, ClusterObjectFieldDescriptor, ClusterCommand, ClusterAttributeDescriptor, Cluster, ClusterEvent
+ from .ClusterObjects import (Cluster, ClusterAttributeDescriptor, ClusterCommand, ClusterEvent, ClusterObject,
+                              ClusterObjectDescriptor, ClusterObjectFieldDescriptor)
 -from .Types import Nullable, NullValue
 +from .Types import Nullable
  
+ 
  @dataclass
- class Identify(Cluster):
-@@ -359,7 +359,7 @@ class Groups(Cluster):
-                             ClusterObjectFieldDescriptor(Label="groupList", Tag=1, Type=typing.List[uint]),
+@@ -397,7 +397,7 @@ class Groups(Cluster):
+                         ClusterObjectFieldDescriptor(Label="groupList", Tag=1, Type=typing.List[uint]),
                      ])
  
 -            capacity: 'typing.Union[Nullable, uint]' = NullValue
@@ -32,16 +32,16 @@ index b349d7345..557c4588a 100644
              groupList: 'typing.List[uint]' = field(default_factory=lambda: [])
  
          @dataclass
-@@ -844,7 +844,7 @@ class Scenes(Cluster):
+@@ -901,7 +901,7 @@ class Scenes(Cluster):
                      ])
  
              status: 'uint' = 0
 -            capacity: 'typing.Union[Nullable, uint]' = NullValue
 +            capacity: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
-             groupId: 'uint' = 0
+             groupID: 'uint' = 0
              sceneList: 'typing.Optional[typing.List[uint]]' = None
  
-@@ -1692,7 +1692,7 @@ class LevelControl(Cluster):
+@@ -1834,7 +1834,7 @@ class LevelControl(Cluster):
                      ])
  
              level: 'uint' = 0
@@ -50,7 +50,7 @@ index b349d7345..557c4588a 100644
              optionsMask: 'uint' = 0
              optionsOverride: 'uint' = 0
  
-@@ -1714,7 +1714,7 @@ class LevelControl(Cluster):
+@@ -1856,7 +1856,7 @@ class LevelControl(Cluster):
                      ])
  
              moveMode: 'LevelControl.Enums.MoveMode' = 0
@@ -59,7 +59,7 @@ index b349d7345..557c4588a 100644
              optionsMask: 'uint' = 0
              optionsOverride: 'uint' = 0
  
-@@ -1738,7 +1738,7 @@ class LevelControl(Cluster):
+@@ -1880,7 +1880,7 @@ class LevelControl(Cluster):
  
              stepMode: 'LevelControl.Enums.StepMode' = 0
              stepSize: 'uint' = 0
@@ -68,7 +68,7 @@ index b349d7345..557c4588a 100644
              optionsMask: 'uint' = 0
              optionsOverride: 'uint' = 0
  
-@@ -1778,7 +1778,7 @@ class LevelControl(Cluster):
+@@ -1920,7 +1920,7 @@ class LevelControl(Cluster):
                      ])
  
              level: 'uint' = 0
@@ -77,7 +77,7 @@ index b349d7345..557c4588a 100644
              optionsMask: 'uint' = 0
              optionsOverride: 'uint' = 0
  
-@@ -1800,7 +1800,7 @@ class LevelControl(Cluster):
+@@ -1942,7 +1942,7 @@ class LevelControl(Cluster):
                      ])
  
              moveMode: 'LevelControl.Enums.MoveMode' = 0
@@ -86,7 +86,7 @@ index b349d7345..557c4588a 100644
              optionsMask: 'uint' = 0
              optionsOverride: 'uint' = 0
  
-@@ -1824,7 +1824,7 @@ class LevelControl(Cluster):
+@@ -1966,7 +1966,7 @@ class LevelControl(Cluster):
  
              stepMode: 'LevelControl.Enums.StepMode' = 0
              stepSize: 'uint' = 0
@@ -95,7 +95,7 @@ index b349d7345..557c4588a 100644
              optionsMask: 'uint' = 0
              optionsOverride: 'uint' = 0
  
-@@ -1878,7 +1878,7 @@ class LevelControl(Cluster):
+@@ -2019,7 +2019,7 @@ class LevelControl(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -104,7 +104,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class RemainingTime(ClusterAttributeDescriptor):
-@@ -2022,7 +2022,7 @@ class LevelControl(Cluster):
+@@ -2163,7 +2163,7 @@ class LevelControl(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -113,8 +113,8 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class OnTransitionTime(ClusterAttributeDescriptor):
-@@ -2948,9 +2948,9 @@ class AccessControl(Cluster):
-                             ClusterObjectFieldDescriptor(Label="deviceType", Tag=2, Type=typing.Union[Nullable, uint]),
+@@ -3174,9 +3174,9 @@ class AccessControl(Cluster):
+                         ClusterObjectFieldDescriptor(Label="deviceType", Tag=2, Type=typing.Union[Nullable, uint]),
                      ])
  
 -            cluster: 'typing.Union[Nullable, uint]' = NullValue
@@ -125,11 +125,11 @@ index b349d7345..557c4588a 100644
 +            deviceType: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
  
          @dataclass
-         class AccessControlEntry(ClusterObject):
-@@ -2967,8 +2967,8 @@ class AccessControl(Cluster):
+         class AccessControlEntryStruct(ClusterObject):
+@@ -3193,8 +3193,8 @@ class AccessControl(Cluster):
  
-             privilege: 'AccessControl.Enums.Privilege' = 0
-             authMode: 'AccessControl.Enums.AuthMode' = 0
+             privilege: 'AccessControl.Enums.AccessControlEntryPrivilegeEnum' = 0
+             authMode: 'AccessControl.Enums.AccessControlEntryAuthModeEnum' = 0
 -            subjects: 'typing.Union[Nullable, typing.List[uint]]' = NullValue
 -            targets: 'typing.Union[Nullable, typing.List[AccessControl.Structs.Target]]' = NullValue
 +            subjects: 'typing.Union[Nullable, typing.List[uint]]' = field(default_factory=Nullable)
@@ -137,8 +137,8 @@ index b349d7345..557c4588a 100644
              fabricIndex: 'uint' = 0
  
          @dataclass
-@@ -3171,10 +3171,10 @@ class AccessControl(Cluster):
-                             ClusterObjectFieldDescriptor(Label="fabricIndex", Tag=254, Type=uint),
+@@ -3409,10 +3409,10 @@ class AccessControl(Cluster):
+                         ClusterObjectFieldDescriptor(Label="fabricIndex", Tag=254, Type=uint),
                      ])
  
 -            adminNodeID: 'typing.Union[Nullable, uint]' = NullValue
@@ -146,13 +146,13 @@ index b349d7345..557c4588a 100644
 +            adminNodeID: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
 +            adminPasscodeID: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
              changeType: 'AccessControl.Enums.ChangeTypeEnum' = 0
--            latestValue: 'typing.Union[Nullable, AccessControl.Structs.AccessControlEntry]' = NullValue
-+            latestValue: 'typing.Union[Nullable, AccessControl.Structs.AccessControlEntry]' = field(default_factory=Nullable)
+-            latestValue: 'typing.Union[Nullable, AccessControl.Structs.AccessControlEntryStruct]' = NullValue
++            latestValue: 'typing.Union[Nullable, AccessControl.Structs.AccessControlEntryStruct]' = field(default_factory=Nullable)
              fabricIndex: 'uint' = 0
  
          @dataclass
-@@ -3198,10 +3198,10 @@ class AccessControl(Cluster):
-                             ClusterObjectFieldDescriptor(Label="fabricIndex", Tag=254, Type=uint),
+@@ -3436,10 +3436,10 @@ class AccessControl(Cluster):
+                         ClusterObjectFieldDescriptor(Label="fabricIndex", Tag=254, Type=uint),
                      ])
  
 -            adminNodeID: 'typing.Union[Nullable, uint]' = NullValue
@@ -160,12 +160,21 @@ index b349d7345..557c4588a 100644
 +            adminNodeID: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
 +            adminPasscodeID: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
              changeType: 'AccessControl.Enums.ChangeTypeEnum' = 0
--            latestValue: 'typing.Union[Nullable, AccessControl.Structs.ExtensionEntry]' = NullValue
-+            latestValue: 'typing.Union[Nullable, AccessControl.Structs.ExtensionEntry]' = field(default_factory=Nullable)
+-            latestValue: 'typing.Union[Nullable, AccessControl.Structs.AccessControlExtensionStruct]' = NullValue
++            latestValue: 'typing.Union[Nullable, AccessControl.Structs.AccessControlExtensionStruct]' = field(default_factory=Nullable)
              fabricIndex: 'uint' = 0
  
  
-@@ -4680,7 +4680,7 @@ class OtaSoftwareUpdateRequestor(Cluster):
+@@ -4125,7 +4125,7 @@ class BasicInformation(Cluster):
+                     ])
+ 
+             finish: 'BasicInformation.Enums.ProductFinishEnum' = 0
+-            primaryColor: 'typing.Union[Nullable, BasicInformation.Enums.ColorEnum]' = NullValue
++            primaryColor: 'typing.Union[Nullable, BasicInformation.Enums.ColorEnum]' = field(default_factory=Nullable)
+ 
+     class Commands:
+         @dataclass
+@@ -5092,7 +5092,7 @@ class OtaSoftwareUpdateRequestor(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -174,7 +183,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class GeneratedCommandList(ClusterAttributeDescriptor):
-@@ -4787,7 +4787,7 @@ class OtaSoftwareUpdateRequestor(Cluster):
+@@ -5214,7 +5214,7 @@ class OtaSoftwareUpdateRequestor(Cluster):
              previousState: 'OtaSoftwareUpdateRequestor.Enums.OTAUpdateStateEnum' = 0
              newState: 'OtaSoftwareUpdateRequestor.Enums.OTAUpdateStateEnum' = 0
              reason: 'OtaSoftwareUpdateRequestor.Enums.OTAChangeReasonEnum' = 0
@@ -183,7 +192,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class VersionApplied(ClusterEvent):
-@@ -4832,8 +4832,8 @@ class OtaSoftwareUpdateRequestor(Cluster):
+@@ -5259,8 +5259,8 @@ class OtaSoftwareUpdateRequestor(Cluster):
  
              softwareVersion: 'uint' = 0
              bytesDownloaded: 'uint' = 0
@@ -194,7 +203,7 @@ index b349d7345..557c4588a 100644
  
  
  @dataclass
-@@ -6780,7 +6780,7 @@ class NetworkCommissioning(Cluster):
+@@ -7578,7 +7578,7 @@ class NetworkCommissioning(Cluster):
  
              networkingStatus: 'NetworkCommissioning.Enums.NetworkCommissioningStatus' = 0
              debugText: 'typing.Optional[str]' = None
@@ -203,7 +212,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class ReorderNetwork(ClusterCommand):
-@@ -6898,7 +6898,7 @@ class NetworkCommissioning(Cluster):
+@@ -7695,7 +7695,7 @@ class NetworkCommissioning(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, NetworkCommissioning.Enums.NetworkCommissioningStatus])
  
@@ -212,7 +221,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class LastNetworkID(ClusterAttributeDescriptor):
-@@ -6914,7 +6914,7 @@ class NetworkCommissioning(Cluster):
+@@ -7711,7 +7711,7 @@ class NetworkCommissioning(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, bytes])
  
@@ -221,7 +230,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class LastConnectErrorValue(ClusterAttributeDescriptor):
-@@ -6930,7 +6930,7 @@ class NetworkCommissioning(Cluster):
+@@ -7727,7 +7727,7 @@ class NetworkCommissioning(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -230,7 +239,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class GeneratedCommandList(ClusterAttributeDescriptor):
-@@ -7285,8 +7285,8 @@ class GeneralDiagnostics(Cluster):
+@@ -8152,8 +8152,8 @@ class GeneralDiagnostics(Cluster):
  
              name: 'str' = ""
              isOperational: 'bool' = False
@@ -241,7 +250,7 @@ index b349d7345..557c4588a 100644
              hardwareAddress: 'bytes' = b""
              IPv4Addresses: 'typing.List[bytes]' = field(default_factory=lambda: [])
              IPv6Addresses: 'typing.List[bytes]' = field(default_factory=lambda: [])
-@@ -8060,8 +8060,8 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -8978,8 +8978,8 @@ class ThreadNetworkDiagnostics(Cluster):
              linkFrameCounter: 'uint' = 0
              mleFrameCounter: 'uint' = 0
              lqi: 'uint' = 0
@@ -252,7 +261,7 @@ index b349d7345..557c4588a 100644
              frameErrorRate: 'uint' = 0
              messageErrorRate: 'uint' = 0
              rxOnWhenIdle: 'bool' = False
-@@ -8177,7 +8177,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9091,7 +9091,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -261,7 +270,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class RoutingRole(ClusterAttributeDescriptor):
-@@ -8193,7 +8193,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9107,7 +9107,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, ThreadNetworkDiagnostics.Enums.RoutingRole])
  
@@ -270,7 +279,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NetworkName(ClusterAttributeDescriptor):
-@@ -8209,7 +8209,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9123,7 +9123,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, str])
  
@@ -279,7 +288,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class PanId(ClusterAttributeDescriptor):
-@@ -8225,7 +8225,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9139,7 +9139,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -288,7 +297,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class ExtendedPanId(ClusterAttributeDescriptor):
-@@ -8241,7 +8241,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9155,7 +9155,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -297,7 +306,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MeshLocalPrefix(ClusterAttributeDescriptor):
-@@ -8257,7 +8257,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9171,7 +9171,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, bytes])
  
@@ -306,7 +315,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class OverrunCount(ClusterAttributeDescriptor):
-@@ -8321,7 +8321,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9235,7 +9235,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -315,7 +324,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Weighting(ClusterAttributeDescriptor):
-@@ -8337,7 +8337,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9251,7 +9251,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -324,7 +333,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class DataVersion(ClusterAttributeDescriptor):
-@@ -8353,7 +8353,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9267,7 +9267,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -333,7 +342,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class StableDataVersion(ClusterAttributeDescriptor):
-@@ -8369,7 +8369,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9283,7 +9283,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -342,7 +351,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class LeaderRouterId(ClusterAttributeDescriptor):
-@@ -8385,7 +8385,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -9299,7 +9299,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -351,7 +360,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class DetachedRoleCount(ClusterAttributeDescriptor):
-@@ -9121,7 +9121,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -10035,7 +10035,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, ThreadNetworkDiagnostics.Structs.SecurityPolicy])
  
@@ -360,7 +369,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class ChannelPage0Mask(ClusterAttributeDescriptor):
-@@ -9137,7 +9137,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -10051,7 +10051,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, bytes])
  
@@ -369,7 +378,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class OperationalDatasetComponents(ClusterAttributeDescriptor):
-@@ -9153,7 +9153,7 @@ class ThreadNetworkDiagnostics(Cluster):
+@@ -10067,7 +10067,7 @@ class ThreadNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, ThreadNetworkDiagnostics.Structs.OperationalDatasetComponents])
  
@@ -378,7 +387,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class ActiveNetworkFaultsList(ClusterAttributeDescriptor):
-@@ -9401,7 +9401,7 @@ class WiFiNetworkDiagnostics(Cluster):
+@@ -10353,7 +10353,7 @@ class WiFiNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, bytes])
  
@@ -387,25 +396,25 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class SecurityType(ClusterAttributeDescriptor):
-@@ -9417,7 +9417,7 @@ class WiFiNetworkDiagnostics(Cluster):
+@@ -10369,7 +10369,7 @@ class WiFiNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
-                 return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.SecurityType])
+                 return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.SecurityTypeEnum])
  
--            value: 'typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.SecurityType]' = NullValue
-+            value: 'typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.SecurityType]' = field(default_factory=Nullable)
+-            value: 'typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.SecurityTypeEnum]' = NullValue
++            value: 'typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.SecurityTypeEnum]' = field(default_factory=Nullable)
  
          @dataclass
          class WiFiVersion(ClusterAttributeDescriptor):
-@@ -9433,7 +9433,7 @@ class WiFiNetworkDiagnostics(Cluster):
+@@ -10385,7 +10385,7 @@ class WiFiNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
-                 return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.WiFiVersionType])
+                 return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.WiFiVersionEnum])
  
--            value: 'typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.WiFiVersionType]' = NullValue
-+            value: 'typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.WiFiVersionType]' = field(default_factory=Nullable)
+-            value: 'typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.WiFiVersionEnum]' = NullValue
++            value: 'typing.Union[Nullable, WiFiNetworkDiagnostics.Enums.WiFiVersionEnum]' = field(default_factory=Nullable)
  
          @dataclass
          class ChannelNumber(ClusterAttributeDescriptor):
-@@ -9449,7 +9449,7 @@ class WiFiNetworkDiagnostics(Cluster):
+@@ -10401,7 +10401,7 @@ class WiFiNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -414,7 +423,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Rssi(ClusterAttributeDescriptor):
-@@ -9465,7 +9465,7 @@ class WiFiNetworkDiagnostics(Cluster):
+@@ -10417,7 +10417,7 @@ class WiFiNetworkDiagnostics(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -423,7 +432,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class BeaconLostCount(ClusterAttributeDescriptor):
-@@ -10173,7 +10173,7 @@ class TimeSynchronization(Cluster):
+@@ -11171,7 +11171,7 @@ class TimeSynchronization(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -432,7 +441,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Granularity(ClusterAttributeDescriptor):
-@@ -10221,7 +10221,7 @@ class TimeSynchronization(Cluster):
+@@ -11219,7 +11219,7 @@ class TimeSynchronization(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -441,7 +450,16 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class DefaultNtp(ClusterAttributeDescriptor):
-@@ -11289,7 +11289,7 @@ class AdministratorCommissioning(Cluster):
+@@ -11523,7 +11523,7 @@ class BridgedDeviceBasicInformation(Cluster):
+                     ])
+ 
+             finish: 'BridgedDeviceBasicInformation.Enums.ProductFinishEnum' = 0
+-            primaryColor: 'typing.Union[Nullable, BridgedDeviceBasicInformation.Enums.ColorEnum]' = NullValue
++            primaryColor: 'typing.Union[Nullable, BridgedDeviceBasicInformation.Enums.ColorEnum]' = field(default_factory=Nullable)
+ 
+     class Attributes:
+         @dataclass
+@@ -12418,7 +12418,7 @@ class AdministratorCommissioning(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -450,7 +468,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class AdminVendorId(ClusterAttributeDescriptor):
-@@ -11305,7 +11305,7 @@ class AdministratorCommissioning(Cluster):
+@@ -12434,7 +12434,7 @@ class AdministratorCommissioning(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -459,7 +477,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class GeneratedCommandList(ClusterAttributeDescriptor):
-@@ -11470,7 +11470,7 @@ class OperationalCredentials(Cluster):
+@@ -12629,7 +12629,7 @@ class OperationalCredentials(Cluster):
                      ])
  
              noc: 'bytes' = b""
@@ -467,11 +485,11 @@ index b349d7345..557c4588a 100644
 +            icac: 'typing.Union[Nullable, bytes]' = field(default_factory=Nullable)
              fabricIndex: 'uint' = 0
  
- 
-@@ -11954,12 +11954,12 @@ class GroupKeyManagement(Cluster):
+     class Commands:
+@@ -13131,12 +13131,12 @@ class GroupKeyManagement(Cluster):
  
              groupKeySetID: 'uint' = 0
-             groupKeySecurityPolicy: 'GroupKeyManagement.Enums.GroupKeySecurityPolicy' = 0
+             groupKeySecurityPolicy: 'GroupKeyManagement.Enums.GroupKeySecurityPolicyEnum' = 0
 -            epochKey0: 'typing.Union[Nullable, bytes]' = NullValue
 -            epochStartTime0: 'typing.Union[Nullable, uint]' = NullValue
 -            epochKey1: 'typing.Union[Nullable, bytes]' = NullValue
@@ -485,9 +503,9 @@ index b349d7345..557c4588a 100644
 +            epochKey2: 'typing.Union[Nullable, bytes]' = field(default_factory=Nullable)
 +            epochStartTime2: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
  
- 
- 
-@@ -13068,7 +13068,7 @@ class ModeSelect(Cluster):
+     class Commands:
+         @dataclass
+@@ -14341,7 +14341,7 @@ class ModeSelect(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -496,62 +514,62 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class SupportedModes(ClusterAttributeDescriptor):
-@@ -13839,11 +13839,11 @@ class DoorLock(Cluster):
+@@ -15354,11 +15354,11 @@ class DoorLock(Cluster):
  
-             operationType: 'DoorLock.Enums.DlDataOperationType' = 0
+             operationType: 'DoorLock.Enums.DataOperationTypeEnum' = 0
              userIndex: 'uint' = 0
 -            userName: 'typing.Union[Nullable, str]' = NullValue
--            userUniqueId: 'typing.Union[Nullable, uint]' = NullValue
--            userStatus: 'typing.Union[Nullable, DoorLock.Enums.DlUserStatus]' = NullValue
--            userType: 'typing.Union[Nullable, DoorLock.Enums.DlUserType]' = NullValue
--            credentialRule: 'typing.Union[Nullable, DoorLock.Enums.DlCredentialRule]' = NullValue
+-            userUniqueID: 'typing.Union[Nullable, uint]' = NullValue
+-            userStatus: 'typing.Union[Nullable, DoorLock.Enums.UserStatusEnum]' = NullValue
+-            userType: 'typing.Union[Nullable, DoorLock.Enums.UserTypeEnum]' = NullValue
+-            credentialRule: 'typing.Union[Nullable, DoorLock.Enums.CredentialRuleEnum]' = NullValue
 +            userName: 'typing.Union[Nullable, str]' = field(default_factory=Nullable)
-+            userUniqueId: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
-+            userStatus: 'typing.Union[Nullable, DoorLock.Enums.DlUserStatus]' = field(default_factory=Nullable)
-+            userType: 'typing.Union[Nullable, DoorLock.Enums.DlUserType]' = field(default_factory=Nullable)
-+            credentialRule: 'typing.Union[Nullable, DoorLock.Enums.DlCredentialRule]' = field(default_factory=Nullable)
++            userUniqueID: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
++            userStatus: 'typing.Union[Nullable, DoorLock.Enums.UserStatusEnum]' = field(default_factory=Nullable)
++            userType: 'typing.Union[Nullable, DoorLock.Enums.UserTypeEnum]' = field(default_factory=Nullable)
++            credentialRule: 'typing.Union[Nullable, DoorLock.Enums.CredentialRuleEnum]' = field(default_factory=Nullable)
  
          @dataclass
          class GetUser(ClusterCommand):
-@@ -13885,15 +13885,15 @@ class DoorLock(Cluster):
+@@ -15400,15 +15400,15 @@ class DoorLock(Cluster):
                      ])
  
              userIndex: 'uint' = 0
 -            userName: 'typing.Union[Nullable, str]' = NullValue
--            userUniqueId: 'typing.Union[Nullable, uint]' = NullValue
--            userStatus: 'typing.Union[Nullable, DoorLock.Enums.DlUserStatus]' = NullValue
--            userType: 'typing.Union[Nullable, DoorLock.Enums.DlUserType]' = NullValue
--            credentialRule: 'typing.Union[Nullable, DoorLock.Enums.DlCredentialRule]' = NullValue
--            credentials: 'typing.Union[Nullable, typing.List[DoorLock.Structs.DlCredential]]' = NullValue
+-            userUniqueID: 'typing.Union[Nullable, uint]' = NullValue
+-            userStatus: 'typing.Union[Nullable, DoorLock.Enums.UserStatusEnum]' = NullValue
+-            userType: 'typing.Union[Nullable, DoorLock.Enums.UserTypeEnum]' = NullValue
+-            credentialRule: 'typing.Union[Nullable, DoorLock.Enums.CredentialRuleEnum]' = NullValue
+-            credentials: 'typing.Union[Nullable, typing.List[DoorLock.Structs.CredentialStruct]]' = NullValue
 -            creatorFabricIndex: 'typing.Union[Nullable, uint]' = NullValue
 -            lastModifiedFabricIndex: 'typing.Union[Nullable, uint]' = NullValue
 -            nextUserIndex: 'typing.Union[Nullable, uint]' = NullValue
 +            userName: 'typing.Union[Nullable, str]' = field(default_factory=Nullable)
-+            userUniqueId: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
-+            userStatus: 'typing.Union[Nullable, DoorLock.Enums.DlUserStatus]' = field(default_factory=Nullable)
-+            userType: 'typing.Union[Nullable, DoorLock.Enums.DlUserType]' = field(default_factory=Nullable)
-+            credentialRule: 'typing.Union[Nullable, DoorLock.Enums.DlCredentialRule]' = field(default_factory=Nullable)
-+            credentials: 'typing.Union[Nullable, typing.List[DoorLock.Structs.DlCredential]]' = field(default_factory=Nullable)
++            userUniqueID: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
++            userStatus: 'typing.Union[Nullable, DoorLock.Enums.UserStatusEnum]' = field(default_factory=Nullable)
++            userType: 'typing.Union[Nullable, DoorLock.Enums.UserTypeEnum]' = field(default_factory=Nullable)
++            credentialRule: 'typing.Union[Nullable, DoorLock.Enums.CredentialRuleEnum]' = field(default_factory=Nullable)
++            credentials: 'typing.Union[Nullable, typing.List[DoorLock.Structs.CredentialStruct]]' = field(default_factory=Nullable)
 +            creatorFabricIndex: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
 +            lastModifiedFabricIndex: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
 +            nextUserIndex: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
  
          @dataclass
          class ClearUser(ClusterCommand):
-@@ -13941,9 +13941,9 @@ class DoorLock(Cluster):
-             operationType: 'DoorLock.Enums.DlDataOperationType' = 0
-             credential: 'DoorLock.Structs.DlCredential' = field(default_factory=lambda: DoorLock.Structs.DlCredential())
+@@ -15456,9 +15456,9 @@ class DoorLock(Cluster):
+             operationType: 'DoorLock.Enums.DataOperationTypeEnum' = 0
+             credential: 'DoorLock.Structs.CredentialStruct' = field(default_factory=lambda: DoorLock.Structs.CredentialStruct())
              credentialData: 'bytes' = b""
 -            userIndex: 'typing.Union[Nullable, uint]' = NullValue
--            userStatus: 'typing.Union[Nullable, DoorLock.Enums.DlUserStatus]' = NullValue
--            userType: 'typing.Union[Nullable, DoorLock.Enums.DlUserType]' = NullValue
+-            userStatus: 'typing.Union[Nullable, DoorLock.Enums.UserStatusEnum]' = NullValue
+-            userType: 'typing.Union[Nullable, DoorLock.Enums.UserTypeEnum]' = NullValue
 +            userIndex: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
-+            userStatus: 'typing.Union[Nullable, DoorLock.Enums.DlUserStatus]' = field(default_factory=Nullable)
-+            userType: 'typing.Union[Nullable, DoorLock.Enums.DlUserType]' = field(default_factory=Nullable)
++            userStatus: 'typing.Union[Nullable, DoorLock.Enums.UserStatusEnum]' = field(default_factory=Nullable)
++            userType: 'typing.Union[Nullable, DoorLock.Enums.UserTypeEnum]' = field(default_factory=Nullable)
  
          @dataclass
          class SetCredentialResponse(ClusterCommand):
-@@ -13962,8 +13962,8 @@ class DoorLock(Cluster):
+@@ -15477,8 +15477,8 @@ class DoorLock(Cluster):
                      ])
  
              status: 'DoorLock.Enums.DlStatus' = 0
@@ -562,7 +580,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class GetCredentialStatus(ClusterCommand):
-@@ -14000,10 +14000,10 @@ class DoorLock(Cluster):
+@@ -15515,10 +15515,10 @@ class DoorLock(Cluster):
                      ])
  
              credentialExists: 'bool' = False
@@ -577,16 +595,16 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class ClearCredential(ClusterCommand):
-@@ -14023,7 +14023,7 @@ class DoorLock(Cluster):
+@@ -15538,7 +15538,7 @@ class DoorLock(Cluster):
              def must_use_timed_invoke(cls) -> bool:
                  return True
  
--            credential: 'typing.Union[Nullable, DoorLock.Structs.DlCredential]' = NullValue
-+            credential: 'typing.Union[Nullable, DoorLock.Structs.DlCredential]' = field(default_factory=Nullable)
- 
+-            credential: 'typing.Union[Nullable, DoorLock.Structs.CredentialStruct]' = NullValue
++            credential: 'typing.Union[Nullable, DoorLock.Structs.CredentialStruct]' = field(default_factory=Nullable)
  
      class Attributes:
-@@ -14041,7 +14041,7 @@ class DoorLock(Cluster):
+         @dataclass
+@@ -15555,7 +15555,7 @@ class DoorLock(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, DoorLock.Enums.DlLockState])
  
@@ -595,36 +613,36 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class LockType(ClusterAttributeDescriptor):
-@@ -14747,9 +14747,9 @@ class DoorLock(Cluster):
+@@ -16276,9 +16276,9 @@ class DoorLock(Cluster):
  
-             lockOperationType: 'DoorLock.Enums.DlLockOperationType' = 0
-             operationSource: 'DoorLock.Enums.DlOperationSource' = 0
+             lockOperationType: 'DoorLock.Enums.LockOperationTypeEnum' = 0
+             operationSource: 'DoorLock.Enums.OperationSourceEnum' = 0
 -            userIndex: 'typing.Union[Nullable, uint]' = NullValue
 -            fabricIndex: 'typing.Union[Nullable, uint]' = NullValue
 -            sourceNode: 'typing.Union[Nullable, uint]' = NullValue
 +            userIndex: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
 +            fabricIndex: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
 +            sourceNode: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
-             credentials: 'typing.Union[None, Nullable, typing.List[DoorLock.Structs.DlCredential]]' = None
+             credentials: 'typing.Union[None, Nullable, typing.List[DoorLock.Structs.CredentialStruct]]' = None
  
          @dataclass
-@@ -14778,9 +14778,9 @@ class DoorLock(Cluster):
-             lockOperationType: 'DoorLock.Enums.DlLockOperationType' = 0
-             operationSource: 'DoorLock.Enums.DlOperationSource' = 0
-             operationError: 'DoorLock.Enums.DlOperationError' = 0
+@@ -16307,9 +16307,9 @@ class DoorLock(Cluster):
+             lockOperationType: 'DoorLock.Enums.LockOperationTypeEnum' = 0
+             operationSource: 'DoorLock.Enums.OperationSourceEnum' = 0
+             operationError: 'DoorLock.Enums.OperationErrorEnum' = 0
 -            userIndex: 'typing.Union[Nullable, uint]' = NullValue
 -            fabricIndex: 'typing.Union[Nullable, uint]' = NullValue
 -            sourceNode: 'typing.Union[Nullable, uint]' = NullValue
 +            userIndex: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
 +            fabricIndex: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
 +            sourceNode: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
-             credentials: 'typing.Union[None, Nullable, typing.List[DoorLock.Structs.DlCredential]]' = None
+             credentials: 'typing.Union[None, Nullable, typing.List[DoorLock.Structs.CredentialStruct]]' = None
  
          @dataclass
-@@ -14809,10 +14809,10 @@ class DoorLock(Cluster):
-             lockDataType: 'DoorLock.Enums.DlLockDataType' = 0
-             dataOperationType: 'DoorLock.Enums.DlDataOperationType' = 0
-             operationSource: 'DoorLock.Enums.DlOperationSource' = 0
+@@ -16338,10 +16338,10 @@ class DoorLock(Cluster):
+             lockDataType: 'DoorLock.Enums.LockDataTypeEnum' = 0
+             dataOperationType: 'DoorLock.Enums.DataOperationTypeEnum' = 0
+             operationSource: 'DoorLock.Enums.OperationSourceEnum' = 0
 -            userIndex: 'typing.Union[Nullable, uint]' = NullValue
 -            fabricIndex: 'typing.Union[Nullable, uint]' = NullValue
 -            sourceNode: 'typing.Union[Nullable, uint]' = NullValue
@@ -636,7 +654,7 @@ index b349d7345..557c4588a 100644
  
  
  @dataclass
-@@ -15884,7 +15884,7 @@ class PumpConfigurationAndControl(Cluster):
+@@ -17519,7 +17519,7 @@ class PumpConfigurationAndControl(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -645,7 +663,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MaxSpeed(ClusterAttributeDescriptor):
-@@ -15900,7 +15900,7 @@ class PumpConfigurationAndControl(Cluster):
+@@ -17535,7 +17535,7 @@ class PumpConfigurationAndControl(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -654,7 +672,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MaxFlow(ClusterAttributeDescriptor):
-@@ -15916,7 +15916,7 @@ class PumpConfigurationAndControl(Cluster):
+@@ -17551,7 +17551,7 @@ class PumpConfigurationAndControl(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -663,7 +681,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MinConstPressure(ClusterAttributeDescriptor):
-@@ -16140,7 +16140,7 @@ class PumpConfigurationAndControl(Cluster):
+@@ -17775,7 +17775,7 @@ class PumpConfigurationAndControl(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -672,7 +690,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Speed(ClusterAttributeDescriptor):
-@@ -16771,8 +16771,8 @@ class Thermostat(Cluster):
+@@ -18450,8 +18450,8 @@ class Thermostat(Cluster):
                      ])
  
              transitionTime: 'uint' = 0
@@ -681,9 +699,9 @@ index b349d7345..557c4588a 100644
 +            heatSetpoint: 'typing.Union[Nullable, int]' = field(default_factory=Nullable)
 +            coolSetpoint: 'typing.Union[Nullable, int]' = field(default_factory=Nullable)
  
- 
- 
-@@ -16887,7 +16887,7 @@ class Thermostat(Cluster):
+     class Commands:
+         @dataclass
+@@ -18562,7 +18562,7 @@ class Thermostat(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -692,7 +710,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class OutdoorTemperature(ClusterAttributeDescriptor):
-@@ -17850,7 +17850,7 @@ class FanControl(Cluster):
+@@ -19569,7 +19569,7 @@ class FanControl(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -701,7 +719,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class PercentCurrent(ClusterAttributeDescriptor):
-@@ -19014,7 +19014,7 @@ class ColorControl(Cluster):
+@@ -20822,7 +20822,7 @@ class ColorControl(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -710,7 +728,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Primary1X(ClusterAttributeDescriptor):
-@@ -20167,7 +20167,7 @@ class IlluminanceMeasurement(Cluster):
+@@ -22008,7 +22008,7 @@ class IlluminanceMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -719,7 +737,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MinMeasuredValue(ClusterAttributeDescriptor):
-@@ -20183,7 +20183,7 @@ class IlluminanceMeasurement(Cluster):
+@@ -22024,7 +22024,7 @@ class IlluminanceMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -728,7 +746,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MaxMeasuredValue(ClusterAttributeDescriptor):
-@@ -20199,7 +20199,7 @@ class IlluminanceMeasurement(Cluster):
+@@ -22040,7 +22040,7 @@ class IlluminanceMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -737,7 +755,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Tolerance(ClusterAttributeDescriptor):
-@@ -20362,7 +20362,7 @@ class TemperatureMeasurement(Cluster):
+@@ -22217,7 +22217,7 @@ class TemperatureMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -746,7 +764,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MinMeasuredValue(ClusterAttributeDescriptor):
-@@ -20378,7 +20378,7 @@ class TemperatureMeasurement(Cluster):
+@@ -22233,7 +22233,7 @@ class TemperatureMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -755,7 +773,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MaxMeasuredValue(ClusterAttributeDescriptor):
-@@ -20394,7 +20394,7 @@ class TemperatureMeasurement(Cluster):
+@@ -22249,7 +22249,7 @@ class TemperatureMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -764,7 +782,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Tolerance(ClusterAttributeDescriptor):
-@@ -20551,7 +20551,7 @@ class PressureMeasurement(Cluster):
+@@ -22424,7 +22424,7 @@ class PressureMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -773,7 +791,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MinMeasuredValue(ClusterAttributeDescriptor):
-@@ -20567,7 +20567,7 @@ class PressureMeasurement(Cluster):
+@@ -22440,7 +22440,7 @@ class PressureMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -782,7 +800,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MaxMeasuredValue(ClusterAttributeDescriptor):
-@@ -20583,7 +20583,7 @@ class PressureMeasurement(Cluster):
+@@ -22456,7 +22456,7 @@ class PressureMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -791,7 +809,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Tolerance(ClusterAttributeDescriptor):
-@@ -20810,7 +20810,7 @@ class FlowMeasurement(Cluster):
+@@ -22697,7 +22697,7 @@ class FlowMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -800,7 +818,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MinMeasuredValue(ClusterAttributeDescriptor):
-@@ -20826,7 +20826,7 @@ class FlowMeasurement(Cluster):
+@@ -22713,7 +22713,7 @@ class FlowMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -809,7 +827,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MaxMeasuredValue(ClusterAttributeDescriptor):
-@@ -20842,7 +20842,7 @@ class FlowMeasurement(Cluster):
+@@ -22729,7 +22729,7 @@ class FlowMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -818,7 +836,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Tolerance(ClusterAttributeDescriptor):
-@@ -20989,7 +20989,7 @@ class RelativeHumidityMeasurement(Cluster):
+@@ -22890,7 +22890,7 @@ class RelativeHumidityMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -827,7 +845,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MinMeasuredValue(ClusterAttributeDescriptor):
-@@ -21005,7 +21005,7 @@ class RelativeHumidityMeasurement(Cluster):
+@@ -22906,7 +22906,7 @@ class RelativeHumidityMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -836,7 +854,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class MaxMeasuredValue(ClusterAttributeDescriptor):
-@@ -21021,7 +21021,7 @@ class RelativeHumidityMeasurement(Cluster):
+@@ -22922,7 +22922,7 @@ class RelativeHumidityMeasurement(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -845,16 +863,16 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class Tolerance(ClusterAttributeDescriptor):
-@@ -22110,7 +22110,7 @@ class MediaPlayback(Cluster):
+@@ -24137,7 +24137,7 @@ class MediaPlayback(Cluster):
                      ])
  
              updatedAt: 'uint' = 0
 -            position: 'typing.Union[Nullable, uint]' = NullValue
 +            position: 'typing.Union[Nullable, uint]' = field(default_factory=Nullable)
  
- 
- 
-@@ -27271,7 +27271,7 @@ class UnitTesting(Cluster):
+     class Commands:
+         @dataclass
+@@ -29557,7 +29557,7 @@ class UnitTesting(Cluster):
  
              fabricSensitiveInt8u: 'uint' = 0
              optionalFabricSensitiveInt8u: 'typing.Optional[uint]' = None
@@ -863,8 +881,8 @@ index b349d7345..557c4588a 100644
              nullableOptionalFabricSensitiveInt8u: 'typing.Union[None, Nullable, uint]' = None
              fabricSensitiveCharString: 'str' = ""
              fabricSensitiveStruct: 'UnitTesting.Structs.SimpleStruct' = field(default_factory=lambda: UnitTesting.Structs.SimpleStruct())
-@@ -27298,16 +27298,16 @@ class UnitTesting(Cluster):
-                             ClusterObjectFieldDescriptor(Label="nullableOptionalList", Tag=11, Type=typing.Union[None, Nullable, typing.List[UnitTesting.Enums.SimpleEnum]]),
+@@ -29584,16 +29584,16 @@ class UnitTesting(Cluster):
+                         ClusterObjectFieldDescriptor(Label="nullableOptionalList", Tag=11, Type=typing.Union[None, Nullable, typing.List[UnitTesting.Enums.SimpleEnum]]),
                      ])
  
 -            nullableInt: 'typing.Union[Nullable, uint]' = NullValue
@@ -884,8 +902,8 @@ index b349d7345..557c4588a 100644
              optionalList: 'typing.Optional[typing.List[UnitTesting.Enums.SimpleEnum]]' = None
              nullableOptionalList: 'typing.Union[None, Nullable, typing.List[UnitTesting.Enums.SimpleEnum]]' = None
  
-@@ -27927,16 +27927,16 @@ class UnitTesting(Cluster):
-                             ClusterObjectFieldDescriptor(Label="nullableOptionalList", Tag=11, Type=typing.Union[None, Nullable, typing.List[UnitTesting.Enums.SimpleEnum]]),
+@@ -30207,16 +30207,16 @@ class UnitTesting(Cluster):
+                         ClusterObjectFieldDescriptor(Label="nullableOptionalList", Tag=11, Type=typing.Union[None, Nullable, typing.List[UnitTesting.Enums.SimpleEnum]]),
                      ])
  
 -            nullableInt: 'typing.Union[Nullable, uint]' = NullValue
@@ -905,7 +923,7 @@ index b349d7345..557c4588a 100644
              optionalList: 'typing.Optional[typing.List[UnitTesting.Enums.SimpleEnum]]' = None
              nullableOptionalList: 'typing.Union[None, Nullable, typing.List[UnitTesting.Enums.SimpleEnum]]' = None
  
-@@ -28814,7 +28814,7 @@ class UnitTesting(Cluster):
+@@ -31092,7 +31092,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, bool])
  
@@ -914,7 +932,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableBitmap8(ClusterAttributeDescriptor):
-@@ -28830,7 +28830,7 @@ class UnitTesting(Cluster):
+@@ -31108,7 +31108,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -923,7 +941,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableBitmap16(ClusterAttributeDescriptor):
-@@ -28846,7 +28846,7 @@ class UnitTesting(Cluster):
+@@ -31124,7 +31124,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -932,7 +950,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableBitmap32(ClusterAttributeDescriptor):
-@@ -28862,7 +28862,7 @@ class UnitTesting(Cluster):
+@@ -31140,7 +31140,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -941,7 +959,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableBitmap64(ClusterAttributeDescriptor):
-@@ -28878,7 +28878,7 @@ class UnitTesting(Cluster):
+@@ -31156,7 +31156,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -950,7 +968,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt8u(ClusterAttributeDescriptor):
-@@ -28894,7 +28894,7 @@ class UnitTesting(Cluster):
+@@ -31172,7 +31172,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -959,7 +977,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt16u(ClusterAttributeDescriptor):
-@@ -28910,7 +28910,7 @@ class UnitTesting(Cluster):
+@@ -31188,7 +31188,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -968,7 +986,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt24u(ClusterAttributeDescriptor):
-@@ -28926,7 +28926,7 @@ class UnitTesting(Cluster):
+@@ -31204,7 +31204,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -977,7 +995,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt32u(ClusterAttributeDescriptor):
-@@ -28942,7 +28942,7 @@ class UnitTesting(Cluster):
+@@ -31220,7 +31220,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -986,7 +1004,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt40u(ClusterAttributeDescriptor):
-@@ -28958,7 +28958,7 @@ class UnitTesting(Cluster):
+@@ -31236,7 +31236,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -995,7 +1013,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt48u(ClusterAttributeDescriptor):
-@@ -28974,7 +28974,7 @@ class UnitTesting(Cluster):
+@@ -31252,7 +31252,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -1004,7 +1022,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt56u(ClusterAttributeDescriptor):
-@@ -28990,7 +28990,7 @@ class UnitTesting(Cluster):
+@@ -31268,7 +31268,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -1013,7 +1031,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt64u(ClusterAttributeDescriptor):
-@@ -29006,7 +29006,7 @@ class UnitTesting(Cluster):
+@@ -31284,7 +31284,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -1022,7 +1040,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt8s(ClusterAttributeDescriptor):
-@@ -29022,7 +29022,7 @@ class UnitTesting(Cluster):
+@@ -31300,7 +31300,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1031,7 +1049,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt16s(ClusterAttributeDescriptor):
-@@ -29038,7 +29038,7 @@ class UnitTesting(Cluster):
+@@ -31316,7 +31316,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1040,7 +1058,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt24s(ClusterAttributeDescriptor):
-@@ -29054,7 +29054,7 @@ class UnitTesting(Cluster):
+@@ -31332,7 +31332,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1049,7 +1067,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt32s(ClusterAttributeDescriptor):
-@@ -29070,7 +29070,7 @@ class UnitTesting(Cluster):
+@@ -31348,7 +31348,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1058,7 +1076,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt40s(ClusterAttributeDescriptor):
-@@ -29086,7 +29086,7 @@ class UnitTesting(Cluster):
+@@ -31364,7 +31364,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1067,7 +1085,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt48s(ClusterAttributeDescriptor):
-@@ -29102,7 +29102,7 @@ class UnitTesting(Cluster):
+@@ -31380,7 +31380,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1076,7 +1094,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt56s(ClusterAttributeDescriptor):
-@@ -29118,7 +29118,7 @@ class UnitTesting(Cluster):
+@@ -31396,7 +31396,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1085,7 +1103,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableInt64s(ClusterAttributeDescriptor):
-@@ -29134,7 +29134,7 @@ class UnitTesting(Cluster):
+@@ -31412,7 +31412,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1094,7 +1112,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableEnum8(ClusterAttributeDescriptor):
-@@ -29150,7 +29150,7 @@ class UnitTesting(Cluster):
+@@ -31428,7 +31428,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -1103,7 +1121,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableEnum16(ClusterAttributeDescriptor):
-@@ -29166,7 +29166,7 @@ class UnitTesting(Cluster):
+@@ -31444,7 +31444,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -1112,7 +1130,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableFloatSingle(ClusterAttributeDescriptor):
-@@ -29182,7 +29182,7 @@ class UnitTesting(Cluster):
+@@ -31460,7 +31460,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, float32])
  
@@ -1121,7 +1139,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableFloatDouble(ClusterAttributeDescriptor):
-@@ -29198,7 +29198,7 @@ class UnitTesting(Cluster):
+@@ -31476,7 +31476,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, float])
  
@@ -1130,7 +1148,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableOctetString(ClusterAttributeDescriptor):
-@@ -29214,7 +29214,7 @@ class UnitTesting(Cluster):
+@@ -31492,7 +31492,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, bytes])
  
@@ -1139,7 +1157,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableCharString(ClusterAttributeDescriptor):
-@@ -29230,7 +29230,7 @@ class UnitTesting(Cluster):
+@@ -31508,7 +31508,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, str])
  
@@ -1148,7 +1166,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableEnumAttr(ClusterAttributeDescriptor):
-@@ -29246,7 +29246,7 @@ class UnitTesting(Cluster):
+@@ -31524,7 +31524,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, UnitTesting.Enums.SimpleEnum])
  
@@ -1157,7 +1175,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableStruct(ClusterAttributeDescriptor):
-@@ -29262,7 +29262,7 @@ class UnitTesting(Cluster):
+@@ -31540,7 +31540,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, UnitTesting.Structs.SimpleStruct])
  
@@ -1166,7 +1184,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableRangeRestrictedInt8u(ClusterAttributeDescriptor):
-@@ -29278,7 +29278,7 @@ class UnitTesting(Cluster):
+@@ -31556,7 +31556,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -1175,7 +1193,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableRangeRestrictedInt8s(ClusterAttributeDescriptor):
-@@ -29294,7 +29294,7 @@ class UnitTesting(Cluster):
+@@ -31572,7 +31572,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1184,7 +1202,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableRangeRestrictedInt16u(ClusterAttributeDescriptor):
-@@ -29310,7 +29310,7 @@ class UnitTesting(Cluster):
+@@ -31588,7 +31588,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, uint])
  
@@ -1193,7 +1211,7 @@ index b349d7345..557c4588a 100644
  
          @dataclass
          class NullableRangeRestrictedInt16s(ClusterAttributeDescriptor):
-@@ -29326,7 +29326,7 @@ class UnitTesting(Cluster):
+@@ -31604,7 +31604,7 @@ class UnitTesting(Cluster):
              def attribute_type(cls) -> ClusterObjectFieldDescriptor:
                  return ClusterObjectFieldDescriptor(Type=typing.Union[Nullable, int])
  
@@ -1203,5 +1221,5 @@ index b349d7345..557c4588a 100644
          @dataclass
          class WriteOnlyInt8u(ClusterAttributeDescriptor):
 -- 
-2.39.1
+2.40.1
 

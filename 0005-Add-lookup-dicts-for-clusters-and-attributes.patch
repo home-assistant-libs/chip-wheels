@@ -1,4 +1,7 @@
-From a3abb758e0cab1f7e1dd9639af59f7c7e58c0c47 Mon Sep 17 00:00:00 2001
+From 5c019aa310a040b1162f3242101abc5440838c11 Mon Sep 17 00:00:00 2001
+Message-Id: <5c019aa310a040b1162f3242101abc5440838c11.1684168831.git.stefan@agner.ch>
+In-Reply-To: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684168831.git.stefan@agner.ch>
+References: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684168831.git.stefan@agner.ch>
 From: Marcel van der Veldt <m.vanderveldt@outlook.com>
 Date: Tue, 21 Feb 2023 16:05:53 +0100
 Subject: [PATCH] Add lookup dicts for clusters and attributes
@@ -8,10 +11,10 @@ Subject: [PATCH] Add lookup dicts for clusters and attributes
  1 file changed, 26 insertions(+)
 
 diff --git a/src/controller/python/chip/clusters/ClusterObjects.py b/src/controller/python/chip/clusters/ClusterObjects.py
-index c3af537da..6c745f6d3 100644
+index 13f35f240a..68e335a696 100644
 --- a/src/controller/python/chip/clusters/ClusterObjects.py
 +++ b/src/controller/python/chip/clusters/ClusterObjects.py
-@@ -217,6 +217,10 @@ class ClusterCommand(ClusterObject):
+@@ -218,6 +218,10 @@ class ClusterCommand(ClusterObject):
      def must_use_timed_invoke(cls) -> bool:
          return False
  
@@ -22,7 +25,7 @@ index c3af537da..6c745f6d3 100644
  
  class Cluster(ClusterObject):
      '''
-@@ -227,6 +231,16 @@ class Cluster(ClusterObject):
+@@ -228,6 +232,16 @@ class Cluster(ClusterObject):
      especially the TLV decoding logic. Also ThreadNetworkDiagnostics has an attribute with the same name so we
      picked data_version as its name.
      '''
@@ -39,7 +42,7 @@ index c3af537da..6c745f6d3 100644
      @property
      def data_version(self) -> int:
          return self._data_version
-@@ -253,6 +267,18 @@ class ClusterAttributeDescriptor:
+@@ -254,6 +268,18 @@ class ClusterAttributeDescriptor:
  
      The implementation of this functions is quite tricky, it will create a cluster object on-the-fly, and use it for actual encode / decode routine to save lines of code.
      '''
@@ -59,5 +62,5 @@ index c3af537da..6c745f6d3 100644
      def ToTLV(cls, tag: Union[int, None], value):
          writer = tlv.TLVWriter()
 -- 
-2.37.0 (Apple Git-136)
+2.40.1
 
