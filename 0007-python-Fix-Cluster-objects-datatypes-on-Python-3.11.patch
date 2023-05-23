@@ -1,0 +1,51 @@
+From fb504b3b0585da50da0be43f0b774425fe435c4c Mon Sep 17 00:00:00 2001
+Message-Id: <fb504b3b0585da50da0be43f0b774425fe435c4c.1684832810.git.stefan@agner.ch>
+In-Reply-To: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684832810.git.stefan@agner.ch>
+References: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684832810.git.stefan@agner.ch>
+From: Stefan Agner <stefan@agner.ch>
+Date: Mon, 22 May 2023 19:32:56 +0200
+Subject: [PATCH] [python] Fix Cluster objects datatypes on Python 3.11
+
+It seems that Python 3.11 requires the custom data type Nullable to
+implement the __hash__() function, otherwise initializing dataclass
+annotated objects fail with the following stack trace:
+
+```
+  File "/home/sag/projects/project-chip/connectedhomeip-v1.1/.environment/pigweed-venv/lib/python3.11/site-packages/chip/clusters/Objects.py", line 385, in Commands
+    @dataclass
+     ^^^^^^^^^
+  File "/usr/lib/python3.11/dataclasses.py", line 1223, in dataclass
+    return wrap(cls)
+           ^^^^^^^^^
+  File "/usr/lib/python3.11/dataclasses.py", line 1213, in wrap
+    return _process_class(cls, init, repr, eq, order, unsafe_hash,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/dataclasses.py", line 958, in _process_class
+    cls_fields.append(_get_field(cls, name, type, kw_only))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/dataclasses.py", line 815, in _get_field
+    raise ValueError(f'mutable default {type(f.default)} for field '
+ValueError: mutable default <class 'chip.clusters.Types.Nullable'> for field capacity is not allowed: use default_factory
+```
+
+Since all instances of Nullable are the same "value", we can return a
+static 0 as hash value.
+---
+ src/controller/python/chip/clusters/Types.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/controller/python/chip/clusters/Types.py b/src/controller/python/chip/clusters/Types.py
+index 2359705010..6957ebe53a 100644
+--- a/src/controller/python/chip/clusters/Types.py
++++ b/src/controller/python/chip/clusters/Types.py
+@@ -32,5 +32,7 @@ class Nullable():
+     def __lt__(self, other):
+         return True
+ 
++    def __hash__(self):
++        return 0
+ 
+ NullValue = Nullable()
+-- 
+2.40.1
+
