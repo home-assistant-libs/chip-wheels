@@ -108,13 +108,14 @@ jobs:
               with:
                 name: matter-sdk-${{ env.matter_sdk_ref }}
             - name: Extract Matter SDK from tar
+              working-directory: ./
               run: |
                 mkdir -p project-chip
                 cd project-chip
                 apt update && apt install zstd
                 tar -xaf ../project-chip.tar.zst --use-compress-program=zstdmt .
                 git config --global --add safe.directory "*"
-              working-directory: ./
+                rm -rf out/
             - name: Bootstrap
               run: scripts/build/gn_bootstrap.sh
             - name: Setup Build, Run Build and Run Tests
@@ -140,7 +141,7 @@ jobs:
             - name: Upload wheels as artifacts
               uses: actions/upload-artifact@v3
               with:
-                name: chip-wheels
+                name: chip-wheels-${{ matrix.arch.name }}
                 path: project-chip/out/controller/python/*.whl
             - name: Upload wheels as release assets
               uses: softprops/action-gh-release@v1
