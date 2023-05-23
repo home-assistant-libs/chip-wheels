@@ -1,7 +1,7 @@
-From db102a2afd2bf2039408164c5b0f0ad698799b3c Mon Sep 17 00:00:00 2001
-Message-Id: <db102a2afd2bf2039408164c5b0f0ad698799b3c.1684255084.git.stefan@agner.ch>
-In-Reply-To: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684255084.git.stefan@agner.ch>
-References: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684255084.git.stefan@agner.ch>
+From c531fe858e4d7cb2e800f72a2a82f853de54825b Mon Sep 17 00:00:00 2001
+Message-Id: <c531fe858e4d7cb2e800f72a2a82f853de54825b.1684832810.git.stefan@agner.ch>
+In-Reply-To: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684832810.git.stefan@agner.ch>
+References: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684832810.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 16 May 2023 18:33:33 +0200
 Subject: [PATCH] [python] drop unnecessary dependency to pycrypto
