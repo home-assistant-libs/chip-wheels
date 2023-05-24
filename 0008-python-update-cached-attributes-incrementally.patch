@@ -1,7 +1,7 @@
-From 4852cc8d7e29bc7a7dcb951548837ab11099f71b Mon Sep 17 00:00:00 2001
-Message-Id: <4852cc8d7e29bc7a7dcb951548837ab11099f71b.1684933865.git.stefan@agner.ch>
-In-Reply-To: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684933865.git.stefan@agner.ch>
-References: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684933865.git.stefan@agner.ch>
+From 375188d7dfa82d7f49f72fbc05cc0904340d732d Mon Sep 17 00:00:00 2001
+Message-Id: <375188d7dfa82d7f49f72fbc05cc0904340d732d.1684940532.git.stefan@agner.ch>
+In-Reply-To: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684940532.git.stefan@agner.ch>
+References: <c46f6cb84fb189da723a9932a5195a553762e2b6.1684940532.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Wed, 24 May 2023 01:02:48 +0200
 Subject: [PATCH] [python] update cached attributes incrementally
@@ -14,7 +14,7 @@ Obviously, this is significantly faster, especially for small updates.
  1 file changed, 53 insertions(+), 48 deletions(-)
 
 diff --git a/src/controller/python/chip/clusters/Attribute.py b/src/controller/python/chip/clusters/Attribute.py
-index 3660d31234..633fd7ab81 100644
+index 3660d31234..06b57384ed 100644
 --- a/src/controller/python/chip/clusters/Attribute.py
 +++ b/src/controller/python/chip/clusters/Attribute.py
 @@ -383,7 +383,7 @@ class AttributeCache:
@@ -52,7 +52,7 @@ index 3660d31234..633fd7ab81 100644
 +
 +            clusterType = _ClusterIndex[cluster]
 +
-+            if (clusterType not in endpointCache):
++            if clusterType not in endpointCache:
 +                endpointCache[clusterType] = {}
 +
 +            clusterCache = endpointCache[clusterType]
