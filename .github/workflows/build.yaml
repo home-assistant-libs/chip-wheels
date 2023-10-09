@@ -70,7 +70,7 @@ jobs:
             - name: Store Matter SDK as artifact
               uses: actions/upload-artifact@v3
               with:
-                name: matter-sdk-${{ env.matter_sdk_ref }}
+                name: matter-sdk-${{ github.run_id }}
                 path: ./project-chip.tar.zst
 
     build_linux_python_lib:
@@ -104,7 +104,7 @@ jobs:
             - name: Restore Matter SDK from artifacts
               uses: actions/download-artifact@v3
               with:
-                name: matter-sdk-${{ env.matter_sdk_ref }}
+                name: matter-sdk-${{ github.run_id }}
             - name: Extract Matter SDK from tar
               working-directory: ./
               run: |
