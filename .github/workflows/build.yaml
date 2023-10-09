@@ -60,7 +60,7 @@ jobs:
                   done
             - name: Bootstrap
               working-directory: ./project-chip
-              run: scripts/build/gn_bootstrap.sh
+              run: bash scripts/bootstrap.sh
             - name: ZAP Code pre-generation
               working-directory: ./project-chip
               run: scripts/run_in_build_env.sh "scripts/codepregen.py ./zzz_pregenerated/"
@@ -81,10 +81,8 @@ jobs:
             matrix:
                 arch:
                     - name: x86_64
-                      container: connectedhomeip/chip-build:0.7.0
                       runner: ubuntu-22.04
                     - name: aarch64
-                      container: agners/aarch64-chip-build:0.7.0
                       runner: ARM64
 
         runs-on: ${{ matrix.arch.runner }}
@@ -96,7 +94,7 @@ jobs:
                 working-directory: ./project-chip
 
         container:
-            image: ${{ matrix.arch.container }}
+            image: ghcr.io/project-chip/chip-build:1
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
             options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
@@ -117,7 +115,7 @@ jobs:
                 git config --global --add safe.directory "*"
                 rm -rf out/
             - name: Bootstrap
-              run: scripts/build/gn_bootstrap.sh
+              run: bash scripts/bootstrap.sh
             - name: Setup Build, Run Build and Run Tests
               run: |
                   scripts/build/gn_gen.sh --args=" \
