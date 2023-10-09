@@ -84,6 +84,8 @@ jobs:
                 arch:
                     - name: x86_64
                       runner: ubuntu-22.04
+                    - name: aarch64
+                      runner: ARM64
 
         runs-on: ${{ matrix.arch.runner }}
         permissions:
