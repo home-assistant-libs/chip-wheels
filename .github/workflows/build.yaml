@@ -10,7 +10,7 @@ jobs:
         name: Prepare build
         runs-on: ubuntu-22.04
         outputs:
-            version: ${{ steps.version.outputs.value }}
+            version: ${{ steps.version.outputs.version }}
             channel: ${{ steps.version.outputs.channel }}
         steps:
             - name: Checkout build repository
@@ -41,6 +41,7 @@ jobs:
                   localversion="${localversion//_/}"
                   version="${calver_date}+${localversion}"
                 fi
+                echo "Building version $version"
                 echo "version=$version" >> "$GITHUB_OUTPUT"
             - name: Checkout CHIP SDK repository
               uses: actions/checkout@v3
