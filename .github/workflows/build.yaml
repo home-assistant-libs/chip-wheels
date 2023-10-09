@@ -83,8 +83,10 @@ jobs:
             matrix:
                 arch:
                     - name: x86_64
+                      container: ghcr.io/project-chip/chip-build:1
                       runner: ubuntu-22.04
                     - name: aarch64
+                      container: docker.io/agners/aarch64-chip-build:1
                       runner: ARM64
 
         runs-on: ${{ matrix.arch.runner }}
@@ -96,7 +98,7 @@ jobs:
                 working-directory: ./project-chip
 
         container:
-            image: ghcr.io/project-chip/chip-build:1
+            image: ${{ matrix.arch.container }}
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
             options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
