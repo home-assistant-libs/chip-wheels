@@ -112,6 +112,7 @@ jobs:
             - name: Extract Matter SDK from tar
               working-directory: ./
               run: |
+                rm -rf project-chip
                 mkdir -p project-chip
                 cd project-chip
                 apt update && apt install zstd
