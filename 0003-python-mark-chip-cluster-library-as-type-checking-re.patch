@@ -1,15 +1,17 @@
-From c98b4529584eb42b8c0459bf031ad6cc130f584e Mon Sep 17 00:00:00 2001
-Message-ID: <c98b4529584eb42b8c0459bf031ad6cc130f584e.1698086809.git.stefan@agner.ch>
-In-Reply-To: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698086809.git.stefan@agner.ch>
-References: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698086809.git.stefan@agner.ch>
+From 26d493898bd640ffa04df3ed35e7845ecb3fc7b7 Mon Sep 17 00:00:00 2001
+Message-ID: <26d493898bd640ffa04df3ed35e7845ecb3fc7b7.1698087175.git.stefan@agner.ch>
+In-Reply-To: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
+References: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Mon, 23 Oct 2023 20:36:06 +0200
 Subject: [PATCH] [python] mark chip cluster library as type checking ready
 
 ---
- src/controller/python/BUILD.gn            | 12 ++++++++++++
- src/controller/python/build-chip-wheel.py | 12 +++++++-----
- 2 files changed, 19 insertions(+), 5 deletions(-)
+ src/controller/python/BUILD.gn               | 12 ++++++++++++
+ src/controller/python/build-chip-wheel.py    | 12 +++++++-----
+ src/controller/python/chip/clusters/py.typed |  0
+ 3 files changed, 19 insertions(+), 5 deletions(-)
+ create mode 100644 src/controller/python/chip/clusters/py.typed
 
 diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
 index b01dafbc30..58e6c8c487 100644
@@ -83,6 +85,9 @@ index 7b21215bdc..92a0f583ca 100644
          scripts=[name for name in map(
              lambda script: os.path.join(tmpDir, script.installName),
              installScripts
+diff --git a/src/controller/python/chip/clusters/py.typed b/src/controller/python/chip/clusters/py.typed
+new file mode 100644
+index 0000000000..e69de29bb2
 -- 
 2.42.0
 

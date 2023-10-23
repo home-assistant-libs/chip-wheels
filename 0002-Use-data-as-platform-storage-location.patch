@@ -1,7 +1,7 @@
 From 88ba0f8233f97a9bb773341da7c996deee9675fe Mon Sep 17 00:00:00 2001
-Message-ID: <88ba0f8233f97a9bb773341da7c996deee9675fe.1698086809.git.stefan@agner.ch>
-In-Reply-To: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698086809.git.stefan@agner.ch>
-References: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698086809.git.stefan@agner.ch>
+Message-ID: <88ba0f8233f97a9bb773341da7c996deee9675fe.1698087175.git.stefan@agner.ch>
+In-Reply-To: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
+References: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 27 May 2022 16:38:14 +0200
 Subject: [PATCH] Use /data as platform storage location
