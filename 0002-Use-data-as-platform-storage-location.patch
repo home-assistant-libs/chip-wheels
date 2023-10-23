@@ -1,7 +1,7 @@
-From 0099f338e0fb740bd4fb2f34b315bca918e9b257 Mon Sep 17 00:00:00 2001
-Message-ID: <0099f338e0fb740bd4fb2f34b315bca918e9b257.1696858281.git.stefan@agner.ch>
-In-Reply-To: <7105b8d215750e60fc872af5d8c5903e61a806c9.1696858281.git.stefan@agner.ch>
-References: <7105b8d215750e60fc872af5d8c5903e61a806c9.1696858281.git.stefan@agner.ch>
+From 88ba0f8233f97a9bb773341da7c996deee9675fe Mon Sep 17 00:00:00 2001
+Message-ID: <88ba0f8233f97a9bb773341da7c996deee9675fe.1698087175.git.stefan@agner.ch>
+In-Reply-To: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
+References: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 27 May 2022 16:38:14 +0200
 Subject: [PATCH] Use /data as platform storage location
@@ -11,7 +11,7 @@ Subject: [PATCH] Use /data as platform storage location
  1 file changed, 6 insertions(+)
 
 diff --git a/src/platform/Linux/BUILD.gn b/src/platform/Linux/BUILD.gn
-index 56324ff5c4..066bde076a 100644
+index a2cfa6b39c..f6fd74ab0c 100644
 --- a/src/platform/Linux/BUILD.gn
 +++ b/src/platform/Linux/BUILD.gn
 @@ -38,6 +38,12 @@ if (chip_mdns == "platform") {

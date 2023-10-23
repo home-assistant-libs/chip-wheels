@@ -3,7 +3,7 @@ name: CHIP wheels build
 on: push
 
 env:
-  matter_sdk_ref: SVE_23_09/rc1
+  matter_sdk_ref: v1.2.0.0
 
 jobs:
     build_prepare:

@@ -1,0 +1,93 @@
+From 26d493898bd640ffa04df3ed35e7845ecb3fc7b7 Mon Sep 17 00:00:00 2001
+Message-ID: <26d493898bd640ffa04df3ed35e7845ecb3fc7b7.1698087175.git.stefan@agner.ch>
+In-Reply-To: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
+References: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
+From: Stefan Agner <stefan@agner.ch>
+Date: Mon, 23 Oct 2023 20:36:06 +0200
+Subject: [PATCH] [python] mark chip cluster library as type checking ready
+
+---
+ src/controller/python/BUILD.gn               | 12 ++++++++++++
+ src/controller/python/build-chip-wheel.py    | 12 +++++++-----
+ src/controller/python/chip/clusters/py.typed |  0
+ 3 files changed, 19 insertions(+), 5 deletions(-)
+ create mode 100644 src/controller/python/chip/clusters/py.typed
+
+diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
+index b01dafbc30..58e6c8c487 100644
+--- a/src/controller/python/BUILD.gn
++++ b/src/controller/python/BUILD.gn
+@@ -184,11 +184,18 @@ template("chip_python_wheel_action") {
+       _py_scripts = []
+     }
+ 
++    if (defined(invoker.py_typed_packages)) {
++      _py_typed_packages = py_typed_packages
++    } else {
++      _py_typed_packages = { }
++    }
++
+     _py_manifest = {
+       files = _py_manifest_files_rebased
+       packages = py_packages
+       scripts = _py_scripts
+       package_reqs = py_package_reqs
++      typed_packages = _py_typed_packages
+     }
+ 
+     write_file(_py_manifest_file, _py_manifest, "json")
+@@ -379,6 +386,7 @@ chip_python_wheel_action("chip-clusters") {
+         "chip/clusters/TestObjects.py",
+         "chip/clusters/Types.py",
+         "chip/clusters/enum.py",
++        "chip/clusters/py.typed",
+         "chip/tlv/__init__.py",
+         "chip/tlv/tlvlist.py",
+       ]
+@@ -389,6 +397,10 @@ chip_python_wheel_action("chip-clusters") {
+     },
+   ]
+ 
++  py_typed_packages = [
++    "chip.clusters",
++  ]
++
+   inputs = []
+ 
+   py_packages = [
+diff --git a/src/controller/python/build-chip-wheel.py b/src/controller/python/build-chip-wheel.py
+index 7b21215bdc..92a0f583ca 100644
+--- a/src/controller/python/build-chip-wheel.py
++++ b/src/controller/python/build-chip-wheel.py
+@@ -115,6 +115,12 @@ try:
+     # Build the chip package...
+     #
+     packages = manifest['packages']
++    package_data = {}
++    for package in manifest['typed_packages']:
++        package_data[package] = [ "py.typed" ]
++
++    if libName:
++        package_data[packages[0]]: [ libName ]
+ 
+     print("packageName: {}".format(packageName))
+     print("libName: {}".format(libName))
+@@ -140,11 +146,7 @@ try:
+             # By default, look in the tmp directory for packages/modules to be included.
+             '': tmpDir,
+         },
+-        package_data={
+-            packages[0]: [
+-                libName
+-            ]
+-        } if libName else {},
++        package_data=package_data,
+         scripts=[name for name in map(
+             lambda script: os.path.join(tmpDir, script.installName),
+             installScripts
+diff --git a/src/controller/python/chip/clusters/py.typed b/src/controller/python/chip/clusters/py.typed
+new file mode 100644
+index 0000000000..e69de29bb2
+-- 
+2.42.0
+

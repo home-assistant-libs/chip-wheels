@@ -1,5 +1,5 @@
-From 7105b8d215750e60fc872af5d8c5903e61a806c9 Mon Sep 17 00:00:00 2001
-Message-ID: <7105b8d215750e60fc872af5d8c5903e61a806c9.1696858281.git.stefan@agner.ch>
+From d06671d9031156ce3b29e06d7edb344d8f6ee0d6 Mon Sep 17 00:00:00 2001
+Message-ID: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
