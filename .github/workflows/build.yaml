@@ -226,7 +226,7 @@ jobs:
                                           chip_config_memory_debug_checks=false \
                                           chip_config_memory_debug_dmalloc=false \
                                           chip_mdns=\"minimal\" \
-                                          chip_minmdns_default_policy=\"libnl\" \
+                                          chip_minmdns_default_policy=\"default\" \
                                           chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
                                           chip_python_package_prefix=\"home-assistant-chip\" \
                                           chip_python_platform_tag=\"macosx_14_0\" \
