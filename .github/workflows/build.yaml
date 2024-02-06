@@ -70,7 +70,7 @@ jobs:
         working-directory: ./project-chip
         run: tar -caf ../project-chip.tar.zst --exclude .environment --use-compress-program=zstdmt .
       - name: Store Matter SDK as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: matter-sdk-${{ github.run_id }}
           path: ./project-chip.tar.zst
@@ -106,7 +106,7 @@ jobs:
 
     steps:
       - name: Restore Matter SDK from artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: matter-sdk-${{ github.run_id }}
       - name: Extract Matter SDK from tar
@@ -143,7 +143,7 @@ jobs:
           scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
           scripts/run_in_build_env.sh '(cd src/controller/python/test/unit_tests/ && python3 -m unittest -v)'
       - name: Upload wheels as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: chip-wheels-${{ matrix.arch.name }}
           path: project-chip/out/controller/python/*.whl
@@ -239,7 +239,7 @@ jobs:
           scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
           scripts/run_in_build_env.sh '(cd src/controller/python/test/unit_tests/ && python3 -m unittest -v)'
       - name: Upload wheels as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: chip-wheels-${{ matrix.arch.name }}
           path: project-chip/out/controller/python/*.whl
