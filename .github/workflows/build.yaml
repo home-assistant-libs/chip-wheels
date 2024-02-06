@@ -182,7 +182,7 @@ jobs:
     strategy:
       matrix:
         arch:
-          - name: aarch64
+          - name: arm64
             runner: macos-14
 
     runs-on: ${{ matrix.arch.runner }}
@@ -228,13 +228,13 @@ jobs:
                                           chip_minmdns_default_policy=\"libnl\" \
                                           chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
                                           chip_python_package_prefix=\"home-assistant-chip\" \
-                                          chip_python_platform_tag=\"manylinux_2_31\" \
+                                          chip_python_platform_tag=\"macosx_14_0\" \
                                           chip_code_pre_generated_directory=\"$(pwd)/zzz_pregenerated\" \
                                           "
           scripts/run_in_build_env.sh "ninja -C ./out chip-repl"
       - name: Run Python library specific unit tests
         run: |
-          scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-manylinux_2_31_${{ matrix.arch.name }}.whl'
+          scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-macosx_14_0_${{ matrix.arch.name }}.whl'
           scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_clusters-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
           scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_chip_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
           scripts/run_in_build_env.sh '(cd src/controller/python/test/unit_tests/ && python3 -m unittest -v)'
@@ -256,7 +256,7 @@ jobs:
           TWINE_REPOSITORY: "pypi"
         run: |
           python3 -m pip install twine build
-          python3 -m twine upload out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-manylinux_2_31_${{ matrix.arch.name }}.whl --skip-existing
+          python3 -m twine upload out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-macosx_14_0_${{ matrix.arch.name }}.whl --skip-existing
       - name: Upload wheels to Test PyPI
         if: ${{ github.ref == 'refs/heads/main' }}
         env:
@@ -265,4 +265,4 @@ jobs:
           TWINE_REPOSITORY: "testpypi"
         run: |
           python3 -m pip install twine build
-          python3 -m twine upload out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-manylinux_2_31_${{ matrix.arch.name }}.whl --skip-existing
+          python3 -m twine upload out/controller/python/home_assistant_chip_core-${{ needs.build_prepare.outputs.version }}-cp37-abi3-macosx_14_0_${{ matrix.arch.name }}.whl --skip-existing
