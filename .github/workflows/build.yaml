@@ -218,9 +218,6 @@ jobs:
       - name: Bootstrap
         working-directory: ./project-chip
         run: bash scripts/bootstrap.sh -p all,darwin
-      - name: ZAP Code pre-generation
-        working-directory: ./project-chip
-        run: scripts/run_in_build_env.sh "scripts/codepregen.py ./zzz_pregenerated/"
       - name: Setup Build, Run Build and Run Tests
         run: |
           scripts/build/gn_gen.sh --args=" \
@@ -233,7 +230,6 @@ jobs:
                                           chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
                                           chip_python_package_prefix=\"home-assistant-chip\" \
                                           chip_python_platform_tag=\"macosx_14_0\" \
-                                          chip_code_pre_generated_directory=\"$(pwd)/zzz_pregenerated\" \
                                           "
           scripts/run_in_build_env.sh "ninja -C ./out chip-repl"
       - name: Run Python library specific unit tests
