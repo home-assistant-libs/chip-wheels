@@ -8,10 +8,6 @@ env:
 jobs:
   build_prepare:
     name: Prepare build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-22.04, macos-14]
     outputs:
       version: ${{ steps.version.outputs.version }}
       channel: ${{ steps.version.outputs.channel }}
@@ -54,7 +50,7 @@ jobs:
           path: ./project-chip
       - name: Checkout submodules
         working-directory: ./project-chip
-        run: scripts/checkout_submodules.py --shallow --platform linux
+        run: scripts/checkout_submodules.py --shallow --platform linux  --platform darwin
       - name: Apply patches
         working-directory: ./project-chip
         run: |
@@ -85,12 +81,15 @@ jobs:
     strategy:
       matrix:
         arch:
-          - name: x86_64
+          - name: linux-x86_64
             container: ghcr.io/project-chip/chip-build:1
             runner: ubuntu-22.04
-          - name: aarch64
+          - name: linux-aarch64
             container: docker.io/agners/aarch64-chip-build:1
             runner: ARM64
+          - name: macos-aarch64
+            container: ghcr.io/project-chip/chip-build:1
+            runner: macos-14
 
     runs-on: ${{ matrix.arch.runner }}
     permissions:
