@@ -145,7 +145,7 @@ jobs:
       - name: Upload wheels as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: chip-wheels-${{ matrix.arch.name }}
+          name: chip-wheels-linux-${{ matrix.arch.name }}
           path: project-chip/out/controller/python/*.whl
       - name: Upload wheels as release assets
         uses: softprops/action-gh-release@v1
@@ -241,7 +241,7 @@ jobs:
       - name: Upload wheels as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: chip-wheels-${{ matrix.arch.name }}
+          name: chip-wheels-macosx-${{ matrix.arch.name }}
           path: project-chip/out/controller/python/*.whl
       - name: Upload wheels as release assets
         uses: softprops/action-gh-release@v1
