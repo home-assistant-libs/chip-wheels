@@ -1,0 +1,186 @@
+From bf8ce26830a60e0d247f37f3b26d2f2244cb986d Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Wed, 14 Feb 2024 15:11:44 +0100
+Subject: [PATCH] [Python] Make Logging Filtering global (#31944)
+
+Log filtering is a global affair, so move the filtering functions to a
+global context too. This allows to setup logging before creating any
+device controller. It aligns with how the SDK treats logging.
+
+Also enable log filtering for the Linux platform to make the
+functionality useful on Linux.
+---
+ src/controller/python/BUILD.gn                |  1 +
+ .../ChipDeviceController-ScriptBinding.cpp    | 20 ----------
+ src/controller/python/chip/ChipDeviceCtrl.py  | 17 ---------
+ .../python/chip/logging/LoggingFilter.cpp     | 37 +++++++++++++++++++
+ .../python/chip/logging/__init__.py           | 13 +++++++
+ src/platform/Linux/CHIPPlatformConfig.h       |  2 +-
+ 6 files changed, 52 insertions(+), 38 deletions(-)
+ create mode 100644 src/controller/python/chip/logging/LoggingFilter.cpp
+
+diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
+index 140ef1e08d..5fc2212098 100644
+--- a/src/controller/python/BUILD.gn
++++ b/src/controller/python/BUILD.gn
+@@ -81,6 +81,7 @@ shared_library("ChipDeviceCtrl") {
+       "chip/internal/ChipThreadWork.cpp",
+       "chip/internal/ChipThreadWork.h",
+       "chip/internal/CommissionerImpl.cpp",
++      "chip/logging/LoggingFilter.cpp",
+       "chip/logging/LoggingRedirect.cpp",
+       "chip/native/ChipMainLoopWork.h",
+       "chip/native/PyChipError.cpp",
+diff --git a/src/controller/python/ChipDeviceController-ScriptBinding.cpp b/src/controller/python/ChipDeviceController-ScriptBinding.cpp
+index 2576a36030..b4f2edb295 100644
+--- a/src/controller/python/ChipDeviceController-ScriptBinding.cpp
++++ b/src/controller/python/ChipDeviceController-ScriptBinding.cpp
+@@ -71,7 +71,6 @@
+ #include <lib/support/CodeUtils.h>
+ #include <lib/support/DLLUtil.h>
+ #include <lib/support/ScopedBuffer.h>
+-#include <lib/support/logging/CHIPLogging.h>
+ #include <platform/CHIPDeviceLayer.h>
+ #include <setup_payload/QRCodeSetupPayloadParser.h>
+ #include <system/SystemClock.h>
+@@ -200,9 +199,6 @@ PyChipError pychip_ScriptDevicePairingDelegate_SetOpenWindowCompleteCallback(
+ // BLE
+ PyChipError pychip_DeviceCommissioner_CloseBleConnection(chip::Controller::DeviceCommissioner * devCtrl);
+ 
+-uint8_t pychip_DeviceController_GetLogFilter();
+-void pychip_DeviceController_SetLogFilter(uint8_t category);
+-
+ const char * pychip_Stack_ErrorToString(ChipError::StorageType err);
+ const char * pychip_Stack_StatusReportToString(uint32_t profileId, uint16_t statusCode);
+ void pychip_Stack_SetLogFunct(LogMessageFunct logFunct);
+@@ -353,22 +349,6 @@ const char * pychip_DeviceController_StatusReportToString(uint32_t profileId, ui
+     return nullptr;
+ }
+ 
+-uint8_t pychip_DeviceController_GetLogFilter()
+-{
+-#if _CHIP_USE_LOGGING
+-    return chip::Logging::GetLogFilter();
+-#else
+-    return chip::Logging::kLogCategory_None;
+-#endif
+-}
+-
+-void pychip_DeviceController_SetLogFilter(uint8_t category)
+-{
+-#if _CHIP_USE_LOGGING
+-    chip::Logging::SetLogFilter(category);
+-#endif
+-}
+-
+ PyChipError pychip_DeviceController_ConnectBLE(chip::Controller::DeviceCommissioner * devCtrl, uint16_t discriminator,
+                                                uint32_t setupPINCode, chip::NodeId nodeid)
+ {
+diff --git a/src/controller/python/chip/ChipDeviceCtrl.py b/src/controller/python/chip/ChipDeviceCtrl.py
+index 2297dfff30..2400d543f6 100644
+--- a/src/controller/python/chip/ChipDeviceCtrl.py
++++ b/src/controller/python/chip/ChipDeviceCtrl.py
+@@ -1480,23 +1480,6 @@ class ChipDeviceControllerBase():
+ 
+         return self._Cluster.ListClusterAttributes()
+ 
+-    def SetLogFilter(self, category):
+-        self.CheckIsActive()
+-
+-        if category < 0 or category > pow(2, 8):
+-            raise ValueError("category must be an unsigned 8-bit integer")
+-
+-        self._ChipStack.Call(
+-            lambda: self._dmLib.pychip_DeviceController_SetLogFilter(category)
+-        )
+-
+-    def GetLogFilter(self):
+-        self.CheckIsActive()
+-
+-        self._ChipStack.Call(
+-            lambda: self._dmLib.pychip_DeviceController_GetLogFilter()
+-        )
+-
+     def SetBlockingCB(self, blockingCB):
+         self.CheckIsActive()
+ 
+diff --git a/src/controller/python/chip/logging/LoggingFilter.cpp b/src/controller/python/chip/logging/LoggingFilter.cpp
+new file mode 100644
+index 0000000000..52271dc3ae
+--- /dev/null
++++ b/src/controller/python/chip/logging/LoggingFilter.cpp
+@@ -0,0 +1,37 @@
++/*
++ *
++ *    Copyright (c) 2024 Project CHIP Authors
++ *
++ *    Licensed under the Apache License, Version 2.0 (the "License");
++ *    you may not use this file except in compliance with the License.
++ *    You may obtain a copy of the License at
++ *
++ *        http://www.apache.org/licenses/LICENSE-2.0
++ *
++ *    Unless required by applicable law or agreed to in writing, software
++ *    distributed under the License is distributed on an "AS IS" BASIS,
++ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ *    See the License for the specific language governing permissions and
++ *    limitations under the License.
++ */
++
++#include <lib/support/logging/CHIPLogging.h>
++
++extern "C" {
++
++uint8_t pychip_logging_GetLogFilter()
++{
++#if _CHIP_USE_LOGGING
++    return chip::Logging::GetLogFilter();
++#else
++    return chip::Logging::kLogCategory_None;
++#endif
++}
++
++void pychip_logging_SetLogFilter(uint8_t category)
++{
++#if _CHIP_USE_LOGGING
++    chip::Logging::SetLogFilter(category);
++#endif
++}
++}
+diff --git a/src/controller/python/chip/logging/__init__.py b/src/controller/python/chip/logging/__init__.py
+index 6916c8b272..047d3f4f8e 100644
+--- a/src/controller/python/chip/logging/__init__.py
++++ b/src/controller/python/chip/logging/__init__.py
+@@ -51,3 +51,16 @@ def RedirectToPythonLogging():
+ 
+     handle = _GetLoggingLibraryHandle()
+     handle.pychip_logging_set_callback(_RedirectToPythonLogging)
++
++
++def SetLogFilter(category):
++    if category < 0 or category > pow(2, 8):
++        raise ValueError("category must be an unsigned 8-bit integer")
++
++    handle = _GetLoggingLibraryHandle()
++    handle.pychip_logging_SetLogFilter(category)
++
++
++def GetLogFilter():
++    handle = _GetLoggingLibraryHandle()
++    return handle.pychip_logging_GetLogFilter()
+diff --git a/src/platform/Linux/CHIPPlatformConfig.h b/src/platform/Linux/CHIPPlatformConfig.h
+index 788fe9b80c..9e2832307f 100644
+--- a/src/platform/Linux/CHIPPlatformConfig.h
++++ b/src/platform/Linux/CHIPPlatformConfig.h
+@@ -57,7 +57,7 @@ using CHIP_CONFIG_PERSISTED_STORAGE_KEY_TYPE = const char *;
+ #endif // CHIP_CONFIG_MAX_EXCHANGE_CONTEXTS
+ 
+ #ifndef CHIP_LOG_FILTERING
+-#define CHIP_LOG_FILTERING 0
++#define CHIP_LOG_FILTERING 1
+ #endif // CHIP_LOG_FILTERING
+ 
+ #ifndef CHIP_CONFIG_BDX_MAX_NUM_TRANSFERS
+-- 
+2.43.0
+

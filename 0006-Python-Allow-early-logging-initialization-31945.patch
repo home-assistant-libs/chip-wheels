@@ -1,0 +1,51 @@
+From e4d6e50d1485110068e85ec28836b37d386fbd47 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Tue, 13 Feb 2024 22:38:46 +0100
+Subject: [PATCH] [Python] Allow early logging initialization (#31945)
+
+* [Python] Allow early logging initialization
+
+Allow to initialize logging before initializing the stack. Similar to
+tracing, logging doesn't need the stack to be setup. This allows to
+redirect logging to Python as early as possible.
+
+* Log using chip.native module for clarity
+
+Use chip.native module for all redirected logs. This separates it from
+logs written by the Python bindings themselfs.
+---
+ src/controller/python/chip/logging/__init__.py       | 2 +-
+ src/controller/python/chip/logging/library_handle.py | 4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/controller/python/chip/logging/__init__.py b/src/controller/python/chip/logging/__init__.py
+index 980c33ac92..6916c8b272 100644
+--- a/src/controller/python/chip/logging/__init__.py
++++ b/src/controller/python/chip/logging/__init__.py
+@@ -32,7 +32,7 @@ def _RedirectToPythonLogging(category, module, message):
+     module = module.decode('utf-8')
+     message = message.decode('utf-8')
+ 
+-    logger = logging.getLogger('chip.%s' % module)
++    logger = logging.getLogger('chip.native.%s' % module)
+ 
+     if category == ERROR_CATEGORY_ERROR:
+         logger.error("%s", message)
+diff --git a/src/controller/python/chip/logging/library_handle.py b/src/controller/python/chip/logging/library_handle.py
+index ae34f502fd..f74a810b46 100644
+--- a/src/controller/python/chip/logging/library_handle.py
++++ b/src/controller/python/chip/logging/library_handle.py
+@@ -27,7 +27,9 @@ def _GetLoggingLibraryHandle() -> ctypes.CDLL:
+       native methods.
+       """
+ 
+-    handle = chip.native.GetLibraryHandle()
++    # Getting a handle without requiring init, as logging methods
++    # do not require chip stack startup
++    handle = chip.native.GetLibraryHandle(chip.native.HandleFlags(0))
+ 
+     # Uses one of the type decorators as an indicator for everything being
+     # initialized.
+-- 
+2.43.0
+
