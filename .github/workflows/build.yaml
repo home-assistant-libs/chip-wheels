@@ -124,6 +124,7 @@ jobs:
       - name: Setup Build, Run Build and Run Tests
         run: |
           scripts/build/gn_gen.sh --args=" \
+                                          chip_crypto=\"boringssl\"
                                           enable_rtti=true \
                                           enable_pylib=true \
                                           chip_config_memory_debug_checks=false \
@@ -221,6 +222,7 @@ jobs:
       - name: Setup Build, Run Build and Run Tests
         run: |
           scripts/build/gn_gen.sh --args=" \
+                                          chip_crypto=\"boringssl\"
                                           enable_rtti=true \
                                           enable_pylib=true \
                                           chip_config_memory_debug_checks=false \
