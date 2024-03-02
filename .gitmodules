@@ -1,0 +1,3 @@
+[submodule "connectedhomeip"]
+	path = connectedhomeip
+	url = https://github.com/project-chip/connectedhomeip.git
