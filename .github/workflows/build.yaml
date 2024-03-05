@@ -2,9 +2,6 @@ name: CHIP wheels build
 
 on: push
 
-env:
-  matter_sdk_ref: v1.2.0.1
-
 jobs:
   build_prepare:
     name: Prepare build
@@ -16,6 +13,7 @@ jobs:
       - name: Checkout build repository
         uses: actions/checkout@v4
         with:
+          submodules: true
           fetch-depth: 0
       - name: Get version
         id: version
@@ -43,17 +41,11 @@ jobs:
           fi
           echo "Building version $version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-      - name: Checkout CHIP SDK repository
-        uses: actions/checkout@v4
-        with:
-          repository: project-chip/connectedhomeip
-          ref: ${{ env.matter_sdk_ref }}
-          path: ./project-chip
       - name: Checkout submodules
-        working-directory: ./project-chip
+        working-directory: ./connectedhomeip/
         run: scripts/checkout_submodules.py --shallow --platform linux
       - name: Apply patches
-        working-directory: ./project-chip
+        working-directory: ./connectedhomeip/
         run: |
           for patch in ../*.patch
           do
@@ -61,19 +53,20 @@ jobs:
               patch -p1 < $patch
           done
       - name: Bootstrap
-        working-directory: ./project-chip
+        working-directory: ./connectedhomeip/
         run: bash scripts/bootstrap.sh -p all,linux
       - name: ZAP Code pre-generation
-        working-directory: ./project-chip
+        working-directory: ./connectedhomeip/
         run: scripts/run_in_build_env.sh "scripts/codepregen.py ./zzz_pregenerated/"
       - name: Create Matter SDK tar
-        working-directory: ./project-chip
-        run: tar -caf ../project-chip.tar.zst --exclude .environment --use-compress-program=zstdmt .
+        run: |
+          tar -caf ../connectedhomeip.tar.zst --exclude ./connectedhomeip/.environment --use-compress-program=zstdmt .
+          mv ../connectedhomeip.tar.zst ./connectedhomeip.tar.zst
       - name: Store Matter SDK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: matter-sdk-${{ github.run_id }}
-          path: ./project-chip.tar.zst
+          path: ./connectedhomeip.tar.zst
 
   build_linux_python_lib:
     name: Build Python wheels for Linux (${{ matrix.arch.name }})
@@ -95,7 +88,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./project-chip
+        working-directory: ./connectedhomeip/
 
     container:
       image: ${{ matrix.arch.container }}
@@ -112,13 +105,10 @@ jobs:
       - name: Extract Matter SDK from tar
         working-directory: ./
         run: |
-          rm -rf project-chip
-          mkdir -p project-chip
-          cd project-chip
           apt update && apt install zstd
-          tar -xaf ../project-chip.tar.zst --use-compress-program=zstdmt .
+          rm -rf connectedhomeip/
+          tar -xaf ./connectedhomeip.tar.zst --use-compress-program=zstdmt .
           git config --global --add safe.directory "*"
-          rm -rf out/
       - name: Bootstrap
         run: bash scripts/bootstrap.sh -p all,linux
       - name: Setup Build, Run Build and Run Tests
@@ -147,7 +137,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: chip-wheels-linux-${{ matrix.arch.name }}
-          path: project-chip/out/controller/python/*.whl
+          path: ./connectedhomeip/out/controller/python/*.whl
       - name: Upload wheels as release assets
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -192,24 +182,19 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./project-chip
+        working-directory: ./connectedhomeip/
 
     steps:
       - name: Checkout build repository
         uses: actions/checkout@v4
         with:
+          submodules: true
           fetch-depth: 0
-      - name: Checkout CHIP SDK repository
-        uses: actions/checkout@v4
-        with:
-          repository: project-chip/connectedhomeip
-          ref: ${{ env.matter_sdk_ref }}
-          path: ./project-chip
       - name: Checkout submodules
-        working-directory: ./project-chip
+        working-directory: ./connectedhomeip/
         run: scripts/checkout_submodules.py --shallow --platform darwin
       - name: Apply patches
-        working-directory: ./project-chip
+        working-directory: ./connectedhomeip/
         run: |
           for patch in ../*.patch
           do
@@ -217,7 +202,7 @@ jobs:
               patch -p1 < $patch
           done
       - name: Bootstrap
-        working-directory: ./project-chip
+        working-directory: ./connectedhomeip/
         run: bash scripts/bootstrap.sh -p all,darwin
       - name: Setup Build, Run Build and Run Tests
         run: |
@@ -249,7 +234,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: project-chip/out/controller/python/*.whl
+          files: connectedhomeip/out/controller/python/*.whl
       - name: Upload wheels to PyPI
         if: startsWith(github.ref, 'refs/tags/')
         env:
