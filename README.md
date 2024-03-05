@@ -11,7 +11,7 @@ Binary wheels of (tagged) releases and pre-releases for Linux x86-64 and
 aarch64/arm64 as well as macOS aarch64/arm64 are available from our Home
 Assistant CHIP repositories at:
 
-- [home-assistant-chip-repl](https://test.pypi.org/project/home-assistant-chip-repl/)
-- [home-assistant-chip-core](https://test.pypi.org/project/home-assistant-chip-core/) (contains the native dependency)
-- [home-assistant-chip-clusters](https://test.pypi.org/project/home-assistant-chip-clusters/)
+- [home-assistant-chip-repl](https://pypi.org/project/home-assistant-chip-repl/)
+- [home-assistant-chip-core](https://pypi.org/project/home-assistant-chip-core/) (contains the native dependency)
+- [home-assistant-chip-clusters](https://pypi.org/project/home-assistant-chip-clusters/)
 
