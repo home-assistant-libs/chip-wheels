@@ -1,0 +1,81 @@
+From a0ba59275c2094028323ec6c4a4135ab8795b158 Mon Sep 17 00:00:00 2001
+From: leonardmgh <leonard@hansen-net.eu>
+Date: Tue, 19 Mar 2024 11:25:07 +0100
+Subject: [PATCH] Log node ID in exchanges (#32550)
+
+* Log nodeID in exchange context
+
+* Update comments
+
+* Use ChipLogValueScopedNodeId with ScopedNodeId instead of SubjectDescriptor
+
+* Make node id logging optional
+
+* Restyled by whitespace
+
+* Restyled by clang-format
+
+---------
+
+Co-authored-by: Restyled.io <commits@restyled.io>
+---
+ src/lib/core/CHIPConfig.h                 | 10 ++++++++++
+ src/lib/support/logging/TextOnlyLogging.h | 14 +++++++++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
+
+diff --git a/src/lib/core/CHIPConfig.h b/src/lib/core/CHIPConfig.h
+index 2de6a662ee..558e0ee08e 100644
+--- a/src/lib/core/CHIPConfig.h
++++ b/src/lib/core/CHIPConfig.h
+@@ -461,6 +461,16 @@
+ #define CHIP_CONFIG_ENABLE_CONDITION_LOGGING 0
+ #endif // CHIP_CONFIG_ENABLE_CONDITION_LOGGING
+ 
++/**
++ *  @def CHIP_EXCHANGE_NODE_ID_LOGGING
++ *
++ *  @brief
++ *    If asserted (1), enable logging of node IDs in exchange context.
++ */
++#ifndef CHIP_EXCHANGE_NODE_ID_LOGGING
++#define CHIP_EXCHANGE_NODE_ID_LOGGING 0
++#endif // CHIP_EXCHANGE_NODE_ID_LOGGING
++
+ /**
+  *  @def CHIP_CONFIG_TEST
+  *
+diff --git a/src/lib/support/logging/TextOnlyLogging.h b/src/lib/support/logging/TextOnlyLogging.h
+index d6b22f7c6c..b0abef9d00 100644
+--- a/src/lib/support/logging/TextOnlyLogging.h
++++ b/src/lib/support/logging/TextOnlyLogging.h
+@@ -268,16 +268,24 @@ using LogRedirectCallback_t = void (*)(const char * module, uint8_t category, co
+ #define ChipLogValueMEI(aValue) static_cast<uint16_t>(aValue >> 16), static_cast<uint16_t>(aValue)
+ 
+ /**
+- * Logging helpers for exchanges.  For now just log the exchange id and whether
+- * it's an initiator or responder, but eventually we may want to log the peer
+- * node id as well (especially for the responder case).  Some callsites only
++ * Logging helpers for exchanges.  Log the exchange id, whether
++ * it's an initiator or responder and the scoped node.  Some callsites only
+  * have the exchange id and initiator/responder boolean, not an actual exchange,
+  * so we want to have a helper for that case too.
+  */
+ #define ChipLogFormatExchangeId "%u%c"
+ #define ChipLogValueExchangeId(id, isInitiator) id, ((isInitiator) ? 'i' : 'r')
++
++#if CHIP_EXCHANGE_NODE_ID_LOGGING
++#define ChipLogFormatExchange ChipLogFormatExchangeId " with Node: " ChipLogFormatScopedNodeId
++#define ChipLogValueExchange(ec)                                                                                                   \
++    ChipLogValueExchangeId((ec)->GetExchangeId(), (ec)->IsInitiator()),                                                            \
++        ChipLogValueScopedNodeId((ec)->HasSessionHandle() ? (ec)->GetSessionHandle()->GetPeer() : ScopedNodeId())
++#else // CHIP_EXCHANGE_NODE_ID_LOGGING
+ #define ChipLogFormatExchange ChipLogFormatExchangeId
+ #define ChipLogValueExchange(ec) ChipLogValueExchangeId((ec)->GetExchangeId(), (ec)->IsInitiator())
++#endif // CHIP_EXCHANGE_NODE_ID_LOGGING
++
+ #define ChipLogValueExchangeIdFromSentHeader(payloadHeader)                                                                        \
+     ChipLogValueExchangeId((payloadHeader).GetExchangeID(), (payloadHeader).IsInitiator())
+ // A received header's initiator boolean is the inverse of the exchange's.
+-- 
+2.39.3 (Apple Git-146)
+
