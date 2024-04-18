@@ -139,7 +139,7 @@ jobs:
           name: chip-wheels-linux-${{ matrix.arch.name }}
           path: ./connectedhomeip/out/controller/python/*.whl
       - name: Upload wheels as release assets
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ./connectedhomeip/out/controller/python/*.whl
@@ -231,7 +231,7 @@ jobs:
           name: chip-wheels-macosx-${{ matrix.arch.name }}
           path: ./connectedhomeip/out/controller/python/*.whl
       - name: Upload wheels as release assets
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: connectedhomeip/out/controller/python/*.whl
