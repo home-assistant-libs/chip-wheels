@@ -1,0 +1,26 @@
+From 3c551b7a706428d2fde77df0bc93d81bb37a2022 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Thu, 18 Apr 2024 21:46:59 +0200
+Subject: [PATCH] Enable node ID logging in exchanges
+
+Enable node ID logging in exchanges by default.
+---
+ src/lib/core/CHIPConfig.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/core/CHIPConfig.h b/src/lib/core/CHIPConfig.h
+index 558e0ee08e..5a3f5facb7 100644
+--- a/src/lib/core/CHIPConfig.h
++++ b/src/lib/core/CHIPConfig.h
+@@ -468,7 +468,7 @@
+  *    If asserted (1), enable logging of node IDs in exchange context.
+  */
+ #ifndef CHIP_EXCHANGE_NODE_ID_LOGGING
+-#define CHIP_EXCHANGE_NODE_ID_LOGGING 0
++#define CHIP_EXCHANGE_NODE_ID_LOGGING 1
+ #endif // CHIP_EXCHANGE_NODE_ID_LOGGING
+ 
+ /**
+-- 
+2.44.0
+
