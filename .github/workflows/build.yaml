@@ -201,6 +201,9 @@ jobs:
               echo "Applying ${patch}"
               patch -p1 < $patch
           done
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: Bootstrap
         working-directory: ./connectedhomeip/
         run: bash scripts/bootstrap.sh -p all,darwin
