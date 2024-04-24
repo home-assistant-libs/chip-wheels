@@ -4,7 +4,7 @@ In-Reply-To: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agn
 References: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 27 May 2022 16:38:14 +0200
-Subject: [PATCH] Use /data as platform storage location
+Subject: [PATCH] Use /root as platform storage location for snapd
 
 ---
  src/platform/Linux/BUILD.gn | 6 ++++++
@@ -19,9 +19,9 @@ index a2cfa6b39c..f6fd74ab0c 100644
  
  static_library("Linux") {
 +  defines = [
-+    "FATCONFDIR=\"/data\"",
-+    "SYSCONFDIR=\"/data\"",
-+    "LOCALSTATEDIR=\"/data\"",
++    "FATCONFDIR=\"/root\"",
++    "SYSCONFDIR=\"/root\"",
++    "LOCALSTATEDIR=\"/root\"",
 +  ]
 +
    sources = [
