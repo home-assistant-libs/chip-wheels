@@ -54,5 +54,4 @@ jobs:
             See full diff at
             https://github.com/project-chip/connectedhomeip/compare/${{ steps.update-submodule.outputs.short_hash_before }}...${{ steps.update-submodule.outputs.short_hash }}.
           branch: update-connectedhomeip-submodule-to-${{ steps.update-submodule.outputs.short_hash }}
-          delete-branch: true
 
