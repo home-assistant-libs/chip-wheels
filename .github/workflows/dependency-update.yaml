@@ -40,11 +40,11 @@ jobs:
 
       # Create Pull Request only if there were changes
       - name: Create Pull Request
-        if: ${{ steps.update-submodule.outputs.empty != true }}
+        if: ${{ steps.update-submodule.outputs.empty != "true" }}
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: Update Matter SDK to `${{steps.update-submodule.outputs.short_hash}}`
-          title: Update Matter SDK to `${{steps.update-submodule.outputs.short_hash}}`
+          commit-message: Update Matter SDK to `${{ steps.update-submodule.outputs.short_hash }}`
+          title: Update Matter SDK to `${{ steps.update-submodule.outputs.short_hash }}`
           body: >
             Bumps [connectedhomeip](https://github.com/project-chip/connectedhomeip)
             from `${{ steps.update-submodule.outputs.short_hash_before }}` to
