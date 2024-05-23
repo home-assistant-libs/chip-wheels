@@ -1,29 +1,28 @@
-From 512ad9e0b236a4102a19924670f3be380a8dacfe Mon Sep 17 00:00:00 2001
-Message-ID: <512ad9e0b236a4102a19924670f3be380a8dacfe.1716462300.git.stefan@agner.ch>
+From 9bc05af1e1ef2ec93336dc0eecba16b6802b6fb1 Mon Sep 17 00:00:00 2001
+Message-ID: <9bc05af1e1ef2ec93336dc0eecba16b6802b6fb1.1716466458.git.stefan@agner.ch>
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 23 May 2024 12:48:54 +0200
-Subject: [PATCH] [Python] Add untyped attribute callback
+Subject: [PATCH] [Python] Add raw attribute callback
 
-Add new subscription callback which returns the untyped paths of
-attributes changed. This allows to subscribe to custom clusters, where
-the type is not part of the Cluster/Attribute types are not part of
-the Python library.
+Add new subscription callback which uses raw AttributePath as paths
+of changed attributes. This allows to subscribe to custom clusters,
+where no Cluster/Attribute types are part of the Python library.
 
-Also allow t get the raw value (in tagged dict format for structs)
-directly from the read transaction.
+Also allow to get the raw Python values (in tagged dict format)
+directly from the subscription transaction.
 ---
  .../python/chip/clusters/Attribute.py         | 48 +++++++++++++++----
  1 file changed, 38 insertions(+), 10 deletions(-)
 
 diff --git a/src/controller/python/chip/clusters/Attribute.py b/src/controller/python/chip/clusters/Attribute.py
-index 9e46eed469..2d7196c0c2 100644
+index 9e46eed469..ce522bf452 100644
 --- a/src/controller/python/chip/clusters/Attribute.py
 +++ b/src/controller/python/chip/clusters/Attribute.py
 @@ -466,6 +466,7 @@ class SubscriptionTransaction:
      def __init__(self, transaction: AsyncReadTransaction, subscriptionId, devCtrl):
          self._onResubscriptionAttemptedCb = DefaultResubscriptionAttemptedCallback
          self._onAttributeChangeCb = DefaultAttributeChangeCallback
-+        self._onUntypedAttributeChangeCb = None
++        self._onRawAttributeChangeCb = None
          self._onEventChangeCb = DefaultEventChangeCallback
          self._onErrorCb = DefaultErrorCallback
          self._readTransaction = transaction
@@ -54,12 +53,12 @@ index 9e46eed469..2d7196c0c2 100644
 -            self._onAttributeChangeCb = callback
 +        self._onAttributeChangeCb = callback
 +
-+    def SetUntypedAttributeUpdateCallback(self, callback: Callable[[AttributePath, SubscriptionTransaction], None]):
++    def SetRawAttributeUpdateCallback(self, callback: Callable[[AttributePath, SubscriptionTransaction], None]):
 +        '''
-+        Sets the callback function for untyped attribute value change event,
-+        accepts a Callable accepts a raw attribute path and the cached data.
++        Sets the callback function for raw attribute value change event,
++        accepts a Callable which accepts an attribute path and the cached data.
 +        '''
-+        self._onUntypedAttributeChangeCb = callback
++        self._onRawAttributeChangeCb = callback
  
      def SetEventUpdateCallback(self, callback: Callable[[EventReadResult, SubscriptionTransaction], None]):
          if callback is not None:
@@ -68,8 +67,8 @@ index 9e46eed469..2d7196c0c2 100644
          return self._onAttributeChangeCb
  
 +    @property
-+    def OnUntypedAttributeChangeCb(self) -> Callable[[TypedAttributePath, SubscriptionTransaction], None]:
-+        return self._onUntypedAttributeChangeCb
++    def OnRawAttributeChangeCb(self) -> Callable[[TypedAttributePath, SubscriptionTransaction], None]:
++        return self._onRawAttributeChangeCb
 +
      @property
      def OnEventChangeCb(self) -> Callable[[EventReadResult, SubscriptionTransaction], None]:
@@ -96,8 +95,8 @@ index 9e46eed469..2d7196c0c2 100644
 +                    self._subscription_handler.OnAttributeChangeCb(
 +                        attribute_path, self._subscription_handler)
 +
-+                if self._subscription_handler.OnUntypedAttributeChangeCb:
-+                    self._subscription_handler.OnUntypedAttributeChangeCb(
++                if self._subscription_handler.OnRawAttributeChangeCb:
++                    self._subscription_handler.OnRawAttributeChangeCb(
 +                        change, self._subscription_handler)
  
              # Clear it out once we've notified of all changes in this transaction.
