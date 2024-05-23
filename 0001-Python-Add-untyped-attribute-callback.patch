@@ -1,0 +1,107 @@
+From 512ad9e0b236a4102a19924670f3be380a8dacfe Mon Sep 17 00:00:00 2001
+Message-ID: <512ad9e0b236a4102a19924670f3be380a8dacfe.1716462300.git.stefan@agner.ch>
+From: Stefan Agner <stefan@agner.ch>
+Date: Thu, 23 May 2024 12:48:54 +0200
+Subject: [PATCH] [Python] Add untyped attribute callback
+
+Add new subscription callback which returns the untyped paths of
+attributes changed. This allows to subscribe to custom clusters, where
+the type is not part of the Cluster/Attribute types are not part of
+the Python library.
+
+Also allow t get the raw value (in tagged dict format for structs)
+directly from the read transaction.
+---
+ .../python/chip/clusters/Attribute.py         | 48 +++++++++++++++----
+ 1 file changed, 38 insertions(+), 10 deletions(-)
+
+diff --git a/src/controller/python/chip/clusters/Attribute.py b/src/controller/python/chip/clusters/Attribute.py
+index 9e46eed469..2d7196c0c2 100644
+--- a/src/controller/python/chip/clusters/Attribute.py
++++ b/src/controller/python/chip/clusters/Attribute.py
+@@ -466,6 +466,7 @@ class SubscriptionTransaction:
+     def __init__(self, transaction: AsyncReadTransaction, subscriptionId, devCtrl):
+         self._onResubscriptionAttemptedCb = DefaultResubscriptionAttemptedCallback
+         self._onAttributeChangeCb = DefaultAttributeChangeCallback
++        self._onUntypedAttributeChangeCb = None
+         self._onEventChangeCb = DefaultEventChangeCallback
+         self._onErrorCb = DefaultErrorCallback
+         self._readTransaction = transaction
+@@ -491,6 +492,18 @@ class SubscriptionTransaction:
+         else:
+             return data[path.Path.EndpointId][path.ClusterType][path.AttributeType]
+ 
++    def GetTLVAttributes(self) -> Dict[int, Dict[int, Dict[int, Any]]]:
++        '''Returns the attributes value cache in raw/tag dict value tracking
++        the latest state on the publisher.
++        '''
++        return self._readTransaction._cache.attributeTLVCache
++
++
++    def GetTLVAttribute(self, path: AttributePath) -> bytes:
++        '''Returns a specific attribute given a AttributePath.
++        '''
++        return self._readTransaction._cache.attributeTLVCache[path.EndpointId][path.ClusterId][path.AttributeId]
++
+     def GetEvents(self):
+         return self._readTransaction.GetAllEventValues()
+ 
+@@ -564,8 +577,14 @@ class SubscriptionTransaction:
+         Sets the callback function for the attribute value change event,
+         accepts a Callable accepts an attribute path and the cached data.
+         '''
+-        if callback is not None:
+-            self._onAttributeChangeCb = callback
++        self._onAttributeChangeCb = callback
++
++    def SetUntypedAttributeUpdateCallback(self, callback: Callable[[AttributePath, SubscriptionTransaction], None]):
++        '''
++        Sets the callback function for untyped attribute value change event,
++        accepts a Callable accepts a raw attribute path and the cached data.
++        '''
++        self._onUntypedAttributeChangeCb = callback
+ 
+     def SetEventUpdateCallback(self, callback: Callable[[EventReadResult, SubscriptionTransaction], None]):
+         if callback is not None:
+@@ -583,6 +602,10 @@ class SubscriptionTransaction:
+     def OnAttributeChangeCb(self) -> Callable[[TypedAttributePath, SubscriptionTransaction], None]:
+         return self._onAttributeChangeCb
+ 
++    @property
++    def OnUntypedAttributeChangeCb(self) -> Callable[[TypedAttributePath, SubscriptionTransaction], None]:
++        return self._onUntypedAttributeChangeCb
++
+     @property
+     def OnEventChangeCb(self) -> Callable[[EventReadResult, SubscriptionTransaction], None]:
+         return self._onEventChangeCb
+@@ -785,14 +808,19 @@ class AsyncReadTransaction:
+ 
+         if (self._subscription_handler is not None):
+             for change in self._changedPathSet:
+-                try:
+-                    attribute_path = TypedAttributePath(Path=change)
+-                except (KeyError, ValueError) as err:
+-                    # path could not be resolved into a TypedAttributePath
+-                    logging.getLogger(__name__).exception(err)
+-                    continue
+-                self._subscription_handler.OnAttributeChangeCb(
+-                    attribute_path, self._subscription_handler)
++                if self._subscription_handler.OnAttributeChangeCb:
++                    try:
++                        attribute_path = TypedAttributePath(Path=change)
++                    except (KeyError, ValueError) as err:
++                        # path could not be resolved into a TypedAttributePath
++                        logging.getLogger(__name__).exception(err)
++                        continue
++                    self._subscription_handler.OnAttributeChangeCb(
++                        attribute_path, self._subscription_handler)
++
++                if self._subscription_handler.OnUntypedAttributeChangeCb:
++                    self._subscription_handler.OnUntypedAttributeChangeCb(
++                        change, self._subscription_handler)
+ 
+             # Clear it out once we've notified of all changes in this transaction.
+         self._changedPathSet = set()
+-- 
+2.45.1
+
