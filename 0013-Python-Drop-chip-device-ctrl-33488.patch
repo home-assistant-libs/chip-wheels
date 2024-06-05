@@ -1,0 +1,2532 @@
+From 9be9b5e5f8b7988c71b178ffc24c76590c8f0f88 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Fri, 24 May 2024 16:19:35 +0200
+Subject: [PATCH] [Python] Drop chip-device-ctrl (#33488)
+
+* Drop chip-device-ctrl and ZCL* APIs
+
+Drop the deprecated chip-device-ctrl and remove the ZCL* API from the
+Python CHIP controller.
+
+* Update docs to reflect chip-repl commands
+
+Update the Python CHIP controller docs to reflect the CHIP REPL
+instead of the now removed chip-device-ctrl tool.
+
+* Remove unused imports
+
+* Replace chip-device-ctrl with chip-repl
+
+* Update/reword main QUICK_START and READMEs
+
+* Fix wrong/buggy cross-reference
+
+* Remove common chip-device-ctrl example
+
+Remove the outdated chip-device-ctrl example and refer to the Python
+controller REPL documentation.
+
+* Add --ble-adapter support to CHIP REPL and update docs
+
+Add support to select the Bluetooth adapter using the common
+--ble-adapter command line argument.
+
+Update the advanced docs for the Python Controller.
+
+* Address review feedback
+
+* Trim list of commands/add link to official API docs
+---
+ docs/QUICK_START.md                           |    2 +-
+ .../python_chip_controller_advanced_usage.md  |  226 ++--
+ .../guides/python_chip_controller_building.md |  499 ++-----
+ .../lighting-app/infineon/cyw30739/README.md  |   16 +-
+ examples/lighting-app/python/README.md        |   15 +-
+ examples/lock-app/infineon/cyw30739/README.md |   16 +-
+ scripts/tools/linux_ip_namespace_setup.sh     |    2 +-
+ src/controller/README.md                      |    2 +-
+ src/controller/python/BUILD.gn                |    5 +-
+ src/controller/python/README.md               |   14 +-
+ src/controller/python/chip-device-ctrl.py     | 1202 -----------------
+ src/controller/python/chip/ChipDeviceCtrl.py  |   82 +-
+ src/controller/python/chip/ChipReplStartup.py |    4 +-
+ .../pycontroller/build-chip-wheel.py          |    1 -
+ 14 files changed, 260 insertions(+), 1826 deletions(-)
+ delete mode 100755 src/controller/python/chip-device-ctrl.py
+
+diff --git a/docs/QUICK_START.md b/docs/QUICK_START.md
+index 97f0f76b3b..10833e0c0c 100644
+--- a/docs/QUICK_START.md
++++ b/docs/QUICK_START.md
+@@ -10,7 +10,7 @@ and platforms.
+ | <div style="width:200px">Controller / Admin</div>                                                                                                                                     | <div style="width:200px">Node</div>                                                                                                                                                                                                                                 | Description                                                                                                                                                                               |
+ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+ | [**chip-tool**](https://github.com/project-chip/connectedhomeip/blob/master/examples/chip-tool/README.md) (Linux / Mac)<br> Includes docs for all the cluster commands supported <br> | **all-clusters-app** <li> [M5Stack](https://github.com/project-chip/connectedhomeip/blob/master/examples/all-clusters-app/esp32/README.md) (ESP)<li>[Linux](https://github.com/project-chip/connectedhomeip/tree/master/examples/all-clusters-app/linux) simulation | Use the command line tool on a laptop to pair with and control an embedded Wi-Fi platform. This demo supports the “all-clusters-app”, so it provides the basic onoff light test and more. |
+-| [**chip-device-ctrl.py**](https://github.com/project-chip/connectedhomeip/blob/master/src/controller/python/README.md)                                                                | **all-clusters-app**<li> [M5Stack](https://github.com/project-chip/connectedhomeip/blob/master/examples/all-clusters-app/esp32/README.md) (ESP)<li> [Linux](https://github.com/project-chip/connectedhomeip/tree/master/examples/all-clusters-app/linux) simulation | Same as above, but uses the pychip tool as Controller Node.                                                                                                                               |
++| [**chip-repl**](https://github.com/project-chip/connectedhomeip/blob/master/src/controller/python/README.md)                                                                          | **all-clusters-app**<li> [M5Stack](https://github.com/project-chip/connectedhomeip/blob/master/examples/all-clusters-app/esp32/README.md) (ESP)<li> [Linux](https://github.com/project-chip/connectedhomeip/tree/master/examples/all-clusters-app/linux) simulation | Same as above, but uses the Python CHIP REPL as Controller Node.                                                                                                                          |
+ 
+ ## Thread Nodes
+ 
+diff --git a/docs/guides/python_chip_controller_advanced_usage.md b/docs/guides/python_chip_controller_advanced_usage.md
+index c3d3f55ddc..2eee5472fd 100644
+--- a/docs/guides/python_chip_controller_advanced_usage.md
++++ b/docs/guides/python_chip_controller_advanced_usage.md
+@@ -7,8 +7,9 @@ tool or Matter accessories on Linux.
+ 
+ <hr>
+ 
+--   [Bluetooth LE virtualization on Linux](#bluetooth-le-virtualization-on-linux)
+--   [Debugging with gdb](#debugging-with-gdb)
++-   [Using Python CHIP Controller advanced features](#using-python-chip-controller-advanced-features)
++    -   [Bluetooth LE virtualization on Linux](#bluetooth-le-virtualization-on-linux)
++    -   [Debugging with gdb](#debugging-with-gdb)
+ 
+ <hr>
+ 
+@@ -62,38 +63,38 @@ interfaces working as Bluetooth LE central and peripheral, respectively.
+        TX bytes:3488 acl:95 sco:0 commands:110 errors:0
+     ```
+ 
+-4. Run the Python CHIP Controller with Bluetooth LE adapter defined from a
++4. Run the Python CHIP Controller REPL with Bluetooth LE adapter defined from a
+    command line:
+ 
+-    For example, add `--bluetooth-adapter=hci2` to use the virtual interface
+-    `hci2` listed above.
++    For example, add `--ble-adapter=2` to use the virtual interface `hci2`
++    listed above.
+ 
+     ```
+-    chip-device-ctrl --bluetooth-adapter=hci2
++    chip-repl --ble-adapter=2
+     ```
+ 
+ <hr>
+ 
+ ## Debugging with gdb
+ 
+-You can run the chip-device-ctrl under GDB for debugging, however, since the
+-Matter core support library is a dynamic library, you cannot read the symbols
+-unless it is fully loaded.
++You can run the chip-repl under GDB for debugging, however, since the Matter SDK
++library is a dynamic library, you cannot read the symbols unless it is fully
++loaded.
+ 
+ The following block is a example debug session using GDB:
+ 
+ ```
+ # GDB cannot run scripts directly
+-# so you need to run Python3 with the path of device controller
+-# Here, we use the feature from bash to get the path of chip-device-ctrl without typing it.
+-$ gdb --args python3 `which chip-device-ctrl`
+-GNU gdb (Ubuntu 10.1-2ubuntu2) 10.1.90.20210411-git
+-Copyright (C) 2021 Free Software Foundation, Inc.
++# so you need to run Python3 with the path of device controller REPL
++# Here, we use the feature from bash to get the path of chip-repl without typing it.
++$ gdb --args python3 `which chip-repl`
++GNU gdb (GDB) 14.2
++Copyright (C) 2023 Free Software Foundation, Inc.
+ License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+ This is free software: you are free to change and redistribute it.
+ There is NO WARRANTY, to the extent permitted by law.
+ Type "show copying" and "show warranty" for details.
+-This GDB was configured as "aarch64-linux-gnu".
++This GDB was configured as "x86_64-pc-linux-gnu".
+ Type "show configuration" for configuration details.
+ For bug reporting instructions, please see:
+ <https://www.gnu.org/software/gdb/bugs/>.
+@@ -103,6 +104,12 @@ Find the GDB manual and other documentation resources online at:
+ For help, type "help".
+ Type "apropos word" to search for commands related to "word"...
+ Reading symbols from python3...
++
++This GDB supports auto-downloading debuginfo from the following URLs:
++  <https://debuginfod.archlinux.org>
++Enable debuginfod for this session? (y or [n]) n
++Debuginfod has been disabled.
++To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+ (No debugging symbols found in python3)
+ (gdb)
+ ```
+@@ -119,38 +126,68 @@ library, let run the Matter device controller first.
+ 
+ ```
+ (gdb) run
+-Starting program: /usr/bin/python3 /home/ubuntu/.local/bin/chip-device-ctrl
++Starting program: /home/sag/projects/project-chip/connectedhomeip/out/venv/bin/python3 /home/sag/projects/project-chip/connectedhomeip/out/venv/bin/chip-repl
+ [Thread debugging using libthread_db enabled]
+-Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+-CHIP:DIS: Init admin pairing table with server storage.
+-CHIP:IN: local node id is 0x000000000001b669
+-CHIP:DL: MDNS failed to join multicast group on wpan0 for address type IPv4: Inet Error 1016 (0x000003F8): Address not found
+-CHIP:ZCL: Using ZAP configuration...
+-CHIP:ZCL: deactivate report event
+-CHIP:CTL: Getting operational keys
+-CHIP:CTL: Generating operational certificate for the controller
+-CHIP:CTL: Getting root certificate for the controller from the issuer
+-CHIP:CTL: Generating credentials
+-CHIP:CTL: Loaded credentials successfully
+-CHIP:DL: Platform main loop started.
+-Chip Device Controller Shell
++Using host libthread_db library "/usr/lib/libthread_db.so.1".
++Python 3.11.9 (main, Apr 29 2024, 11:59:58) [GCC 13.2.1 20240417]
++Type 'copyright', 'credits' or 'license' for more information
++IPython 8.24.0 -- An enhanced Interactive Python. Type '?' for help.
++[1716395111.775747][364405:364405] CHIP:CTL: Setting attestation nonce to random value
++[1716395111.776196][364405:364405] CHIP:CTL: Setting CSR nonce to random value
++InitBLE 0[1716395111.776809][364405:364405] CHIP:DL: writing settings to file (/tmp/chip_counters.ini-T7hX27)
++[1716395111.776854][364405:364405] CHIP:DL: renamed tmp file to file (/tmp/chip_counters.ini)
++[1716395111.776860][364405:364405] CHIP:DL: NVS set: chip-counters/reboot-count = 9 (0x9)
++[1716395111.777261][364405:364405] CHIP:DL: Got Ethernet interface: eno2
++[1716395111.777555][364405:364405] CHIP:DL: Found the primary Ethernet interface:eno2
++[1716395111.777868][364405:364405] CHIP:DL: Got WiFi interface: wlp7s0
++[1716395111.777877][364405:364405] CHIP:DL: Failed to reset WiFi statistic counts
++────────────────────────────────────────────────────────────────────────────────────────────────────────── Matter REPL ──────────────────────────────────────────────────────────────────────────────────────────────────────────
++
++
++
++            Welcome to the Matter Python REPL!
++
++            For help, please type matterhelp()
++
++            To get more information on a particular object/class, you can pass
++            that into matterhelp() as well.
++
++
++─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
++2024-05-22 18:25:11 allenwind PersistentStorage[364405] WARNING Initializing persistent storage from file: /tmp/repl-storage.json
++2024-05-22 18:25:11 allenwind PersistentStorage[364405] WARNING Loading configuration from /tmp/repl-storage.json...
++2024-05-22 18:25:11 allenwind CertificateAuthorityManager[364405] WARNING Loading certificate authorities from storage...
++2024-05-22 18:25:11 allenwind CertificateAuthority[364405] WARNING New CertificateAuthority at index 1
++2024-05-22 18:25:11 allenwind CertificateAuthority[364405] WARNING Loading fabric admins from storage...
++2024-05-22 18:25:11 allenwind FabricAdmin[364405] WARNING New FabricAdmin: FabricId: 0x0000000000000001, VendorId = 0xFFF1
++2024-05-22 18:25:11 allenwind FabricAdmin[364405] WARNING Allocating new controller with CaIndex: 1, FabricId: 0x0000000000000001, NodeId: 0x000000000001B669, CatTags: []
++
++
++The following objects have been created:
++        certificateAuthorityManager:    Manages a list of CertificateAuthority instances.
++        caList:                         The list of CertificateAuthority instances.
++        caList:                 A specific FabricAdmin object at index m for the nth CertificateAuthority instance.
+ 
+-chip-device-ctrl >
++
++Default CHIP Device Controller (NodeId: 112233): has been initialized to manage caList[0].adminList[0] (FabricId = 1), and is available as devCtrl
++
++In [1]:
+ ```
+ 
+-The prompt `chip-device-ctrl >` indicates that the Matter core library is loaded
+-by Python, you can browse the symbols in the Matter core library, setting
+-breakpoints on functions and many other functions provided by GDB.
++The prompt `In [1]:` indicates that the Matter SDK library has been loaded and
++initialized by the Python Controller REPL, you can browse the symbols in the
++Matter core library, setting breakpoints on functions and many other functions
++provided by GDB.
+ 
+-You can use `Ctrl-C` to send SIGINT to the controller anytime you want so you
+-can set breakpoints.
++You can use `Ctrl-Z` to send `SIGTSTP` to the Python 3 REPL process anytime you
++want so you can set breakpoints (unfortunately Ctrl+C seems to be captured by
++the REPL).
+ 
+-> (`Ctrl-C` pressed here.)
++In [1]: (`Ctrl-Z` pressed here.)
+ 
+ ```
+-Thread 1 "python3" received signal SIGINT, Interrupt.
+-0x0000fffff7db79ec in __GI___select (nfds=<optimized out>, readfds=0xffffffffe760, writefds=0x0, exceptfds=0x0, timeout=<optimized out>) at ../sysdeps/unix/sysv/linux/select.c:49
+-49	../sysdeps/unix/sysv/linux/select.c: No such file or directory.
++Thread 1 "python3" received signal SIGTSTP, Stopped (user).
++0x00007ffff7650ceb in kill () from /usr/lib/libc.so.6
+ (gdb)
+ ```
+ 
+@@ -159,40 +196,27 @@ command in GDB (`b` for short)
+ 
+ ```
+ (gdb) b DeviceCommissioner::PairDevice
+-Breakpoint 1 at 0xfffff5b0f6b4 (2 locations)
++Breakpoint 1 at 0x7fffed453943: DeviceCommissioner::PairDevice. (4 locations)
+ (gdb)
+ ```
+ 
+-Type `continue` (`c` for short) to continue the device controller, you may need
+-another hit of `Enter` to see the prompt.
++Type `signal SIGCONT` to continue the device controller after stopping it with
++signal stop, you may need another hit of `Enter` to see the prompt.
+ 
+ ```
+-(gdb) c
+-Continuing.
+-
+-chip-device-ctrl >
++(gdb) signal SIGCONT
++Continuing with signal SIGCONT.
++In [1]:
+ ```
+ 
+ Let do pairing over IP to see the effect of the breakpoint we just set.
+ 
+ ```
+-chip-device-ctrl > connect -ip 192.168.50.5 20202021 1
+-Device is assigned with nodeid = 1
+-
+-Thread 1 "python3" hit Breakpoint 1, 0x0000fffff5b0f6b4 in chip::Controller::DeviceCommissioner::PairDevice(unsigned long, chip::RendezvousParameters&)@plt ()
+-   from /home/ubuntu/.local/lib/python3.9/site-packages/chip/_ChipDeviceCtrl.so
+-(gdb)
+-```
+-
+-The `@plt` symbol means it is a symbol used by dynamic library loader, type `c`
+-(for `continue`) and it will break on the real function.
++In [1]: devCtrl.CommissionWithCode("MT:-24J0AFN00KA0648G00", 1234)
+ 
+-```
+-(gdb) c
+-Continuing.
+-
+-Thread 1 "python3" hit Breakpoint 1, chip::Controller::DeviceCommissioner::PairDevice (this=0xd28540, remoteDeviceId=1, params=...) at ../../src/controller/CHIPDeviceController.cpp:827
+-827	{
++Thread 5 "python3" hit Breakpoint 1.1, chip::Controller::DeviceCommissioner::PairDevice (this=0x7fffd8003a90, remoteDeviceId=1234, setUpCode=0x7ffff453d490 "MT:-24J0AFN00KA0648G00", params=...,
++    discoveryType=chip::Controller::DiscoveryType::kAll, resolutionData=...) at ../../src/controller/CHIPDeviceController.cpp:646
++646     {
+ (gdb)
+ ```
+ 
+@@ -201,46 +225,44 @@ then you can use `bt` (for `backtrace`) to see the backtrace of the call stack.
+ 
+ ```
+ (gdb) bt
+-#0  chip::Controller::DeviceCommissioner::PairDevice(unsigned long, chip::RendezvousParameters&) (this=0xd28540, remoteDeviceId=1, params=...)
+-    at ../../src/controller/CHIPDeviceController.cpp:827
+-#1  0x0000fffff5b3095c in pychip_DeviceController_ConnectIP(chip::Controller::DeviceCommissioner*, char const*, uint32_t, chip::NodeId)
+-    (devCtrl=0xd28540, peerAddrStr=0xfffff467ace0 "192.168.50.5", setupPINCode=20202021, nodeid=1) at ../../src/controller/python/ChipDeviceController-ScriptBinding.cpp:234
+-#2  0x0000fffff7639148 in  () at /lib/aarch64-linux-gnu/libffi.so.8
+-#3  0x0000fffff7638750 in  () at /lib/aarch64-linux-gnu/libffi.so.8
+-#4  0x0000fffff7665a44 in  () at /usr/lib/python3.9/lib-dynload/_ctypes.cpython-39-aarch64-linux-gnu.so
+-#5  0x0000fffff7664c7c in  () at /usr/lib/python3.9/lib-dynload/_ctypes.cpython-39-aarch64-linux-gnu.so
+-#6  0x00000000004a54f0 in _PyObject_MakeTpCall ()
+-#7  0x000000000049cb10 in _PyEval_EvalFrameDefault ()
+-#8  0x0000000000496d1c in  ()
+-#9  0x00000000004b1eb0 in _PyFunction_Vectorcall ()
+-#10 0x0000000000498264 in _PyEval_EvalFrameDefault ()
+-#11 0x00000000004b1cb8 in _PyFunction_Vectorcall ()
+-#12 0x0000000000498418 in _PyEval_EvalFrameDefault ()
+-#13 0x0000000000496d1c in  ()
+-#14 0x00000000004b1eb0 in _PyFunction_Vectorcall ()
+-#15 0x0000000000498418 in _PyEval_EvalFrameDefault ()
+-#16 0x00000000004b1cb8 in _PyFunction_Vectorcall ()
+-#17 0x00000000004c6bc8 in  ()
+-#18 0x0000000000498264 in _PyEval_EvalFrameDefault ()
+-#19 0x00000000004b1cb8 in _PyFunction_Vectorcall ()
+-#20 0x0000000000498418 in _PyEval_EvalFrameDefault ()
+-#21 0x00000000004966f8 in  ()
+-#22 0x00000000004b1f18 in _PyFunction_Vectorcall ()
+-#23 0x0000000000498418 in _PyEval_EvalFrameDefault ()
+-#24 0x00000000004b1cb8 in _PyFunction_Vectorcall ()
+-#25 0x0000000000498264 in _PyEval_EvalFrameDefault ()
+-#26 0x00000000004966f8 in  ()
+-#27 0x0000000000496490 in _PyEval_EvalCodeWithName ()
+-#28 0x0000000000595b7c in PyEval_EvalCode ()
+-#29 0x00000000005c6a5c in  ()
+-#30 0x00000000005c0a70 in  ()
+-#31 0x00000000005c69a8 in  ()
+-#32 0x00000000005c6148 in PyRun_SimpleFileExFlags ()
+-#33 0x00000000005b60bc in Py_RunMain ()
+-#34 0x0000000000585a08 in Py_BytesMain ()
+-#35 0x0000fffff7d0c9d4 in __libc_start_main (main=
+-    0x5858fc <_start+60>, argc=2, argv=0xfffffffff498, init=<optimized out>, fini=<optimized out>, rtld_fini=<optimized out>, stack_end=<optimized out>) at ../csu/libc-start.c:332
+-#36 0x00000000005858f8 in _start ()
++(gdb) bt
++#0  chip::Controller::DeviceCommissioner::PairDevice
++    (this=0x7fffd8003a90, remoteDeviceId=1234, setUpCode=0x7fffef2555d0 "MT:-24J0AFN00KA0648G00", params=..., discoveryType=chip::Controller::DiscoveryType::kAll, resolutionData=...)
++    at ../../src/controller/CHIPDeviceController.cpp:646
++#1  0x00007fffed040825 in pychip_DeviceController_ConnectWithCode (devCtrl=0x7fffd8003a90, onboardingPayload=0x7fffef2555d0 "MT:-24J0AFN00KA0648G00", nodeid=1234, discoveryType=2 '\002')
++    at ../../src/controller/python/ChipDeviceController-ScriptBinding.cpp:395
++#2  0x00007ffff6ad5596 in ??? () at /usr/lib/libffi.so.8
++#3  0x00007ffff6ad200e in ??? () at /usr/lib/libffi.so.8
++#4  0x00007ffff6ad4bd3 in ffi_call () at /usr/lib/libffi.so.8
++#5  0x00007ffff6aeaffc in ??? () at /usr/lib/python3.11/lib-dynload/_ctypes.cpython-311-x86_64-linux-gnu.so
++#6  0x00007ffff6aeb4b4 in ??? () at /usr/lib/python3.11/lib-dynload/_ctypes.cpython-311-x86_64-linux-gnu.so
++#7  0x00007ffff794a618 in _PyObject_MakeTpCall () at /usr/lib/libpython3.11.so.1.0
++#8  0x00007ffff78f3d03 in _PyEval_EvalFrameDefault () at /usr/lib/libpython3.11.so.1.0
++#9  0x00007ffff7adef90 in ??? () at /usr/lib/libpython3.11.so.1.0
++#10 0x00007ffff79ebc0b in _PyObject_FastCallDictTstate () at /usr/lib/libpython3.11.so.1.0
++#11 0x00007ffff79ebe02 in _PyObject_Call_Prepend () at /usr/lib/libpython3.11.so.1.0
++#12 0x00007ffff79ec114 in ??? () at /usr/lib/libpython3.11.so.1.0
++#13 0x00007ffff794a618 in _PyObject_MakeTpCall () at /usr/lib/libpython3.11.so.1.0
++#14 0x00007ffff78f3d03 in _PyEval_EvalFrameDefault () at /usr/lib/libpython3.11.so.1.0
++#15 0x00007ffff7adef90 in ??? () at /usr/lib/libpython3.11.so.1.0
++#16 0x00007ffff7955b97 in PyObject_Vectorcall () at /usr/lib/libpython3.11.so.1.0
++#17 0x00007ffff6aea174 in ??? () at /usr/lib/python3.11/lib-dynload/_ctypes.cpython-311-x86_64-linux-gnu.so
++#18 0x00007ffff6aea28c in ??? () at /usr/lib/python3.11/lib-dynload/_ctypes.cpython-311-x86_64-linux-gnu.so
++#19 0x00007ffff6ad5152 in ??? () at /usr/lib/libffi.so.8
++#20 0x00007ffff6ad57b8 in ??? () at /usr/lib/libffi.so.8
++#21 0x00007fffed5de848 in chip::DeviceLayer::Internal::GenericPlatformManagerImpl<chip::DeviceLayer::PlatformManagerImpl>::_DispatchEvent
++    (this=0x7fffed88dc90 <chip::DeviceLayer::PlatformManagerImpl::sInstance+16>, event=0x7fffe6fffe30) at ../../src/include/platform/internal/GenericPlatformManagerImpl.ipp:304
++#22 0x00007fffed5dd90d in chip::DeviceLayer::PlatformManager::DispatchEvent (this=0x7fffed88dc80 <chip::DeviceLayer::PlatformManagerImpl::sInstance>, event=0x7fffe6fffe30) at ../../src/include/platform/PlatformManager.h:503
++#23 0x00007fffed5df45b in chip::DeviceLayer::Internal::GenericPlatformManagerImpl_POSIX<chip::DeviceLayer::PlatformManagerImpl>::ProcessDeviceEvents
++    (this=0x7fffed88dc90 <chip::DeviceLayer::PlatformManagerImpl::sInstance+16>) at ../../src/include/platform/internal/GenericPlatformManagerImpl_POSIX.ipp:185
++#24 0x00007fffed5dee64 in chip::DeviceLayer::Internal::GenericPlatformManagerImpl_POSIX<chip::DeviceLayer::PlatformManagerImpl>::_RunEventLoop (this=0x7fffed88dc90 <chip::DeviceLayer::PlatformManagerImpl::sInstance+16>)
++--Type <RET> for more, q to quit, c to continue without paging--
++    at ../../src/include/platform/internal/GenericPlatformManagerImpl_POSIX.ipp:227
++#25 0x00007fffed5dd888 in chip::DeviceLayer::PlatformManager::RunEventLoop (this=0x7fffed88dc80 <chip::DeviceLayer::PlatformManagerImpl::sInstance>) at ../../src/include/platform/PlatformManager.h:403
++#26 0x00007fffed5df3fe in chip::DeviceLayer::Internal::GenericPlatformManagerImpl_POSIX<chip::DeviceLayer::PlatformManagerImpl>::EventLoopTaskMain (arg=0x7fffed88dc90 <chip::DeviceLayer::PlatformManagerImpl::sInstance+16>)
++    at ../../src/include/platform/internal/GenericPlatformManagerImpl_POSIX.ipp:256
++#27 0x00007ffff76a6ded in ??? () at /usr/lib/libc.so.6
++#28 0x00007ffff772a0dc in ??? () at /usr/lib/libc.so.6
+ (gdb)
+ ```
+ 
+diff --git a/docs/guides/python_chip_controller_building.md b/docs/guides/python_chip_controller_building.md
+index c940f2c925..8a7acc884a 100644
+--- a/docs/guides/python_chip_controller_building.md
++++ b/docs/guides/python_chip_controller_building.md
+@@ -1,25 +1,20 @@
+-# Deprecation notice
+-
+-chip-device-ctrl is no longer maintained and should not be used.
+-
+-Matter-repl is the current python controller implementation.
+-
+ # Working with Python CHIP Controller
+ 
+-The Python CHIP Controller is a tool that allows to commission a Matter device
+-into the network and to communicate with it using the Zigbee Cluster Library
+-(ZCL) messages.
++The Python CHIP controller is a library that allows to create a Matter fabric
++and commission Matter devices with it.
+ 
+-> The chip-device-ctrl tool will be deprecated, and will be replaced by
+-> chip-repl. Continue reading to see how to do the same thing with chip-repl.
++The `chip-repl` is a REPl which sets up a Python CHIP Controller and allows to
++explore the Python CHIP Controller API and communicate with devices from the
++command line.
+ 
+ <hr>
+ 
+ -   [Source files](#source-files)
+--   [Building Android CHIPTool](#building-and-installing)
+--   [Running the tool](#running-the-tool)
+--   [Using Python CHIP Controller for Matter accessory testing](#using-python-chip-controller-for-matter-accessory-testing)
+--   [List of commands](#list-of-commands)
++-   [Building Python CHIP Controller](#building-and-installing)
++-   [Running the CHIP REPL](#running-the-chip-repl)
++-   [Using Python CHIP Controller REPL for Matter accessory testing](#using-python-chip-controller-repl-for-matter-accessory-testing)
++-   [Example usage of the Python CHIP Controller REPL](#example-usage-of-the-python-chip-controller-repl)
++-   [Explore Clusters, Attributes and Commands](#explore-clusters-attributes-and-commands)
+ 
+ <hr>
+ 
+@@ -85,35 +80,31 @@ To build and run the Python CHIP controller:
+     scripts/build_python.sh -m platform -i separate
+     ```
+ 
+-    > Note: To get more details about available build configurations, run the
++    > Note: This builds the Python CHIP Controller along with the CHIP REPL as
++    > Python wheels and installs it into a separate Python virtual environment.
++    > To get more details about available build configurations, run the
+     > following command: `scripts/build_python.sh --help`
+ 
+ <hr>
+ 
+-## Running the tool
++## Running the CHIP REPL
+ 
+-1. Activate the Python virtual environment:
++1. Activate the Python virtual environment with the Python CHIP Controller
++   installed:
+ 
+     ```
+     source out/python_env/bin/activate
+     ```
+ 
+-2. Run the Python CHIP controller with root privileges, which is required to
+-   obtain access to the Bluetooth interface:
+-
+-    ```
+-    sudo out/python_env/bin/chip-device-ctrl
+-    ```
+-
+-    You can also select the Bluetooth LE interface using command line argument:
++2. Run the CHIP REPL to explore the API of the Python CHIP controller:
+ 
+     ```
+-    sudo out/python_env/bin/chip-device-ctrl --bluetooth-adapter=hci2
++    chip-repl
+     ```
+ 
+ <hr>
+ 
+-## Using Python CHIP Controller for Matter accessory testing
++## Using Python CHIP Controller REPL for Matter accessory testing
+ 
+ This section describes how to use Python CHIP controller to test the Matter
+ accessory. Below steps depend on the application clusters that you implemented
+@@ -135,13 +126,14 @@ require physical trigger, for example pushing a button. Follow the documentation
+ of the Matter accessory example to learn how Bluetooth LE advertising is enabled
+ for the given example.
+ 
+-### Step 3: Discover Matter accessory device over Bluetooth LE
++### Step 3: Discover commissionable Matter accessory device
+ 
+-An uncommissioned accessory device advertises over Bluetooth LE. Run the
+-following command to scan all advertised Matter devices:
++An uncommissioned accessory device advertises over Bluetooth LE or via mDNS if
++already on the network. Run the following command to scan all advertised Matter
++devices:
+ 
+ ```
+-chip-device-ctrl > ble-scan
++devCtrl.DiscoverCommissionableNodes()
+ ```
+ 
+ ### Step 4: Set network pairing credentials
+@@ -177,11 +169,12 @@ network interface, such as Thread or Wi-Fi.
+     datasets directly from the Thread Border Router, you might also use a
+     different out-of-band method.
+ 
+-2. Set the previously obtained Active Operational Dataset as a hex-encoded value
+-   using the following command:
++2. Set the previously obtained Active Operational Dataset as a byte array using
++   the following command:
+ 
+     ```
+-    chip-device-ctrl > set-pairing-thread-credential 0e080000000000010000000300001335060004001fffe002084fe76e9a8b5edaf50708fde46f999f0698e20510d47f5027a414ffeebaefa92285cc84fa030f4f70656e5468726561642d653439630102e49c0410b92f8c7fbb4f9f3e08492ee3915fbd2f0c0402a0fff8
++    thread_dataset = bytes.fromhex("0e080000000000010000000300001335060004001fffe002084fe76e9a8b5edaf50708fde46f999f0698e20510d47f5027a414ffeebaefa92285cc84fa030f4f70656e5468726561642d653439630102e49c0410b92f8c7fbb4f9f3e08492ee3915fbd2f0c0402a0fff8")
++    devCtrl.SetThreadOperationalDataset(thread_dataset)
+     ```
+ 
+ #### Setting Wi-Fi network credentials
+@@ -190,11 +183,9 @@ Assuming your Wi-Fi SSID is _TESTSSID_, and your Wi-Fi password is _P455W4RD_,
+ set the credentials to the controller by executing the following command:
+ 
+ ```
+-chip-device-ctrl > set-pairing-wifi-credential TESTSSID P455W4RD
++devCtrl.SetWiFiCredentials(<ssid>, <password>)
+ ```
+ 
+-**REPL Command**: `devCtrl.SetWiFiCredentials(<ssid>, <password>)`
+-
+ ### Step 5: Commission the Matter accessory device over Bluetooth LE
+ 
+ The controller uses a 12-bit value called **discriminator** to discern between
+@@ -222,16 +213,26 @@ with the following assumptions for the Matter accessory device:
+ -   The temporary Node ID is _1234_
+ 
+ ```
+-chip-device-ctrl > connect -ble 3840 20202021 1234
++devCtrl.ConnectBLE(3840, 20202021, 1234)
+ ```
+ 
+-**REPL Command:**
+-`devCtrl.ConnectBLE(<discriminator>, <setup pincode>, <temporary node id>)`
+-
+ You can skip the last parameter, the Node ID, in the command. If you skip it,
+ the controller will assign it randomly. In that case, note down the Node ID,
+ because it is required later in the configuration process.
+ 
++It is also possible to use the QR setup code instead. It typically is shown on
++the terminal of the device as well. For example:
++
++```
++CHIP:SVR: SetupQRCode: [MT:-24J0AFN00KA0648G00]
++```
++
++Use the following command to commission the device with the QR code:
++
++```
++devCtrl.CommissionWithCode("MT:-24J0AFN00KA0648G00", 1234)
++```
++
+ After connecting the device over Bluetooth LE, the controller will go through
+ the following stages:
+ 
+@@ -255,429 +256,155 @@ the following stages:
+     finished and the Python CHIP controller is now using only the IPv6 traffic
+     to reach the device.
+ 
+-### Step 6: Control application ZCL clusters.
++### Step 6: Control application clusters.
+ 
+ For the light bulb example, execute the following command to toggle the LED
+ state:
+ 
+ ```
+-chip-device-ctrl > zcl OnOff Toggle 1234 1 0
++await devCtrl.SendCommand(1234, 1, Clusters.OnOff.Commands.Toggle())
+ ```
+ 
+-**REPL Command:**
+-`await devCtrl.SendCommand(1234, 1, Clusters.OnOff.Commands.Toggle())`
+-
+ To change the brightness of the LED, use the following command, with the level
+ value somewhere between 0 and 255.
+ 
+ ```
+-chip-device-ctrl > zcl LevelControl MoveToLevel 1234 1 0 level=50
++commandToSend = LevelControl.Commands.MoveToLevel(level=50, transitionTime=Null, optionsMask=0, optionsOverride=0)
++await devCtrl.SendCommand(1234, 1, commandToSend)
+ ```
+ 
+-**REPL Command:**
+-`await devCtrl.SendCommand(1234, 1, LevelControl.Commands.MoveToLevel(level=50, transitionTime=Null, optionsMask=0, optionsOverride=0))`
+-
+ ### Step 7: Read basic information out of the accessory.
+ 
+ Every Matter accessory device supports a Basic Information Cluster, which
+ maintains collection of attributes that a controller can obtain from a device,
+-such as the vendor name, the product name, or software version. Use `zclread`
+-command to read those values from the device:
++such as the vendor name, the product name, or software version. Use
++`ReadAttribute()` command to read those values from the device:
+ 
+ ```
+-chip-device-ctrl > zclread BasicInformation VendorName 1234 1 0
+-chip-device-ctrl > zclread BasicInformation ProductName 1234 1 0
+-chip-device-ctrl > zclread BasicInformation SoftwareVersion 1234 1 0
++attributes = [
++    (0, Clusters.BasicInformation.Attributes.VendorName),
++    (0, Clusters.BasicInformation.Attributes.ProductName),
++    (0, Clusters.BasicInformation.Attributes.SoftwareVersion),
++]
++await devCtrl.ReadAttribute(1234, attributes)
+ ```
+ 
+-**REPL Command:**
+-`await devCtrl.ReadAttribute(1234, [(1, Clusters.BasicInformation.Attributes.VendorName)])`
+-
+-> Use the `zcl ? BasicInformation` command to list all available commands for
+-> Basic Information Cluster.
+->
+ > In REPL, you can type `Clusters.BasicInformation.Attributes.` and then use the
+ > TAB key.
+ 
+ <hr>
+ 
+-## List of commands
+-
+-### `ble-adapter-print`
++## Example usage of the Python CHIP Controller REPL
+ 
+-> BLE adapter operations is not yet supported in REPL
++These section covers a few useful commands of the Python CHIP Controller along
++with examples demonstrating how they can be called from the REPL.
+ 
+-Print the available Bluetooth adapters on device. Takes no arguments:
+-
+-```
+-chip-device-ctrl > ble-adapter-print
+-2021-03-04 16:09:40,930 ChipBLEMgr   INFO     AdapterName: hci0   AdapterAddress: 00:AA:01:00:00:23
+-```
++The
++[CHIP Device Controller API documentation offer](https://project-chip.github.io/connectedhomeip-doc/testing/ChipDeviceCtrlAPI.html#chip-chipdevicectrl)
++the full list of available commands.
+ 
+-### `ble-debug-log`
+-
+-> BLE adapter operations is not yet supported in REPL
+-
+-Enable the Bluetooth LE debug logs.
+-
+-```
+-chip-device-ctrl > ble-debug-log 1
+-```
+-
+-### `ble-scan [-t <timeout>] [identifier]`
+-
+-> BLE adapter operations is not yet supported in REPL
+-
+-Start a scan action to search for valid CHIP devices over Bluetooth LE (for at
+-most _timeout_ seconds). Stop when the device is matching the identifier or the
+-counter times out.
+-
+-```
+-chip-device-ctrl > ble-scan
+-2021-05-29 22:28:05,461 ChipBLEMgr   INFO     scanning started
+-2021-05-29 22:28:07,206 ChipBLEMgr   INFO     Name            = ChipLight
+-2021-05-29 22:28:07,206 ChipBLEMgr   INFO     ID              = f016e23d-0d00-35d5-93e7-588acdbc7e54
+-2021-05-29 22:28:07,207 ChipBLEMgr   INFO     RSSI            = -79
+-2021-05-29 22:28:07,207 ChipBLEMgr   INFO     Address         = E0:4D:84:3C:BB:C3
+-2021-05-29 22:28:07,209 ChipBLEMgr   INFO     Pairing State   = 0
+-2021-05-29 22:28:07,209 ChipBLEMgr   INFO     Discriminator   = 3840
+-2021-05-29 22:28:07,209 ChipBLEMgr   INFO     Vendor Id       = 9050
+-2021-05-29 22:28:07,209 ChipBLEMgr   INFO     Product Id      = 20044
+-2021-05-29 22:28:07,210 ChipBLEMgr   INFO     Adv UUID        = 0000fff6-0000-1000-8000-00805f9b34fb
+-2021-05-29 22:28:07,210 ChipBLEMgr   INFO     Adv Data        = 00000f5a234c4e
+-2021-05-29 22:28:07,210 ChipBLEMgr   INFO
+-2021-05-29 22:28:16,246 ChipBLEMgr   INFO     scanning stopped
+-```
+-
+-### `set-pairing-thread-credential <threadOperationalDataset>`
++### `SetThreadOperationalDataset(<thread-dataset>)`
+ 
+ Provides the controller with Thread network credentials that will be used in the
+ device commissioning procedure to configure the device with a Thread interface.
+ 
+ ```
+-chip-device-ctrl > set-pairing-thread-credential 0e080000000000010000000300001335060004001fffe002084fe76e9a8b5edaf50708fde46f999f0698e20510d47f5027a414ffeebaefa92285cc84fa030f4f70656e5468726561642d653439630102e49c0410b92f8c7fbb4f9f3e08492ee3915fbd2f0c0402a0fff8
++thread_dataset = bytes.fromhex("0e080000000000010000000300001335060004001fffe002084fe76e9a8b5edaf50708fde46f999f0698e20510d47f5027a414ffeebaefa92285cc84fa030f4f70656e5468726561642d653439630102e49c0410b92f8c7fbb4f9f3e08492ee3915fbd2f0c0402a0fff8")
++devCtrl.SetThreadOperationalDataset(thread_dataset)
+ ```
+ 
+-**REPL Commands:**
+-`devCtrl.SetThreadOperationalDataset(bytes.FromHex("0e080000000000010000000300001335060004001fffe002084fe76e9a8b5edaf50708fde46f999f0698e20510d47f5027a414ffeebaefa92285cc84fa030f4f70656e5468726561642d653439630102e49c0410b92f8c7fbb4f9f3e08492ee3915fbd2f0c0402a0fff8"))`
+-
+-### `set-pairing-wifi-credential <ssid> <credentials>`
++### `SetWiFiCredentials(<ssid>: str, <password>: str)`
+ 
+ Provides the controller with Wi-Fi network credentials that will be used in the
+ device commissioning procedure to configure the device with a Wi-Fi interface.
+ 
+ ```
+-chip-device-ctrl > set-pairing-wifi-credential TESTSSID P455W4RD
++devCtrl.SetWiFiCredentials('TESTSSID', 'P455W4RD')
+ ```
+ 
+-**REPL Commands:** `devCtrl.SetWiFiCredentials('TESTSSID', 'P455W4RD')`
+-
+-### `connect -ip <address> <SetUpPinCode> [<nodeid>]`
+-
+-Do key exchange and establish a secure session between controller and device
+-using IP transport.
+-
+-The Node ID will be used by controller to distinguish multiple devices. This
+-does not match the spec and will be removed later. The nodeid will not be
+-persisted by controller / device.
+-
+-If no nodeid given, a random Node ID will be used.
+-
+-**REPL Commands:**
+-`devCtrl.CommissionIP(b'<ip address>', <setup pin code>, <nodeid>)`
+-
+-### `connect -ble <discriminator> <SetUpPinCode> [<nodeid>]`
+-
+-Do key exchange and establish a secure session between controller and device
+-using Bluetooth LE transport.
+-
+-The Node ID will be used by controller to distinguish multiple devices. This
+-does not match the spec and will be removed later. The nodeid will not be
+-persisted by controller / device.
+-
+-If no nodeid given, a random Node ID will be used.
+-
+-**REPL Commands:**
+-`devCtrl.ConnectBLE(<discriminator>, <setup pin code>, <nodeid>)`
++### `CommissionWithCode(<setupPayload>: str, <nodeid>: int, <discoveryType>: DiscoveryType)`
+ 
+-### `close-session <nodeid>`
++Commission with the given nodeid from the setupPayload. setupPayload may be a QR
++or the manual setup code.
+ 
+-If case there exists an open session (PASE or CASE) to the device with a given
+-Node ID, mark it as expired.
+-
+-**REPL Commands:** `devCtrl.CloseSession(<nodeid>)`
+-
+-### `discover`
+-
+-> To be implemented in REPL
+-
+-Discover available Matter accessory devices:
+-
+-```
+-chip-device-ctrl > discover -all
+ ```
+-
+-### `resolve <node_id>`
+-
+-> To be implemented in REPL
+-
+-Resolve DNS-SD name corresponding with the given Node ID and update address of
+-the node in the device controller:
+-
+-```
+-chip-device-ctrl > resolve 1234
++devCtrl.CommissionWithCode("MT:-24J0AFN00KA0648G00", 1234)
+ ```
+ 
+-### `setup-payload generate [-v <Vendor ID>] [-p <Product ID>] [-cf <Custom Flow>] [-dc <Discovery Capabilities>] [-dv <Discriminator Value>] [-ps <Passcode>]`
+-
+-> To be implemented in REPL
++### `SendCommand(<nodeid>: int, <endpoint>: int, Clusters.<cluster>.Commands.<command>(<arguments>))`
+ 
+-Print the generated Onboarding Payload Contents in human-readable (Manual
+-Pairing Code) and machine-readable (QR Code) format:
++Send a Matter command to the device. For example:
+ 
++```python
++commandToSend = Clusters.LevelControl.Commands.MoveWithOnOff(moveMode=1, rate=2, optionsMask=0, optionsOverride=0)
++await devCtrl.SendCommand(1234, 1, commandToSend)
+ ```
+-chip-device-ctrl > setup-payload generate -v 9050 -p 65279 -cf 0 -dc 2 -dv 2976 -ps 34567890
+-Manual pairing code: [26318621095]
+-SetupQRCode: [MT:YNJV7VSC00CMVH7SR00]
+-```
+-
+-### `setup-payload parse-manual <manual-pairing-code>`
+-
+-> To be implemented in REPL
+-
+-Print the commissioning information encoded in the Manual Pairing Code:
+-
+-```
+-chip-device-ctrl > setup-payload parse-manual 34970112332
+-Version: 0
+-VendorID: 0
+-ProductID: 0
+-CommissioningFlow: 0
+-RendezvousInformation: 0
+-Discriminator: 3840
+-SetUpPINCode: 20202021
+-```
+-
+-### `setup-payload parse-qr <qr-code>`
+ 
+-> To be implemented in REPL
+-
+-Print the commissioning information encoded in the QR Code payload:
++To see available arguments just create a command object without argument:
+ 
+ ```
+-chip-device-ctrl > setup-payload parse-qr "VP:vendorpayload%MT:W0GU2OTB00KA0648G00"
+-Version: 0
+-VendorID: 9050
+-ProductID: 20043
+-CommissioningFlow: 0
+-RendezvousInformation: 2 [BLE]
+-Discriminator: 3840
+-SetUpPINCode: 20202021
++Clusters.LevelControl.Commands.MoveWithOnOff()
+ ```
+ 
+-### `zcl <Cluster> <Command> <NodeId> <EndpointId> <GroupId> [arguments]`
+-
+-Send a ZCL command to the device. For example:
++Shows which arguments are available:
+ 
+ ```
+-chip-device-ctrl > zcl LevelControl MoveWithOnOff 12344321 1 0 moveMode=1 rate=2
++MoveWithOnOff(
++│   moveMode=0,
++│   rate=Null,
++│   optionsMask=0,
++│   optionsOverride=0
++)
+ ```
+ 
+-**Format of arguments**
++### `ReadAttribute(<nodeid>: int, [(<endpoint id>: int, Clusters.<cluster>.Attributes.<attribute>)])`
+ 
+-For any integer and char string (null terminated) types, just use `key=value`,
+-for example: `rate=2`, `string=123`, `string_2="123 456"`
+-
+-For byte string type, use `key=encoding:value`, currently, we support `str` and
+-`hex` encoding, the `str` encoding will encode a NULL terminated string. For
+-example, `networkId=hex:0123456789abcdef` (for
+-`[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]`), `ssid=str:Test` (for
+-`['T', 'e', 's', 't', 0x00]`).
+-
+-For boolean type, use `key=True` or `key=False`.
+-
+-**REPL Commands:**
++Read the value of an attribute. For example:
+ 
+ ```python
+-# await devCtrl.SendCommand(<nodeid>, <endpoint>, Clusters.<cluster>.Commands.<command>(<arguments>))
+-# e.g.
+-await devCtrl.SendCommand(12344321, 1, Clusters.LevelControl.Commands.MoveWithOnOff(moveMode=1, rate=2, optionsMask=0, optionsOverride=0))
+-```
+-
+-### `zcl ?`
+-
+-List available clusters:
+-
+-```
+-chip-device-ctrl > zcl ?
+-AccountLogin
+-ApplicationBasic
+-ApplicationLauncher
+-AudioOutput
+-BarrierControl
+-BasicInformation
+-Binding
+-BridgedDeviceBasicInformation
+-ColorControl
+-ContentLaunch
+-Descriptor
+-DoorLock
+-EthernetNetworkDiagnostics
+-FixedLabel
+-GeneralCommissioning
+-GeneralDiagnostics
+-GroupKeyManagement
+-Groups
+-Identify
+-KeypadInput
+-LevelControl
+-LowPower
+-MediaInput
+-MediaPlayback
+-NetworkCommissioning
+-OnOff
+-OperationalCredentials
+-PumpConfigurationAndControl
+-RelativeHumidityMeasurement
+-ScenesManagement
+-SoftwareDiagnostics
+-Switch
+-Channel
+-TargetNavigator
+-TemperatureMeasurement
+-TestCluster
+-Thermostat
+-TrustedRootCertificates
+-WakeOnLan
+-WindowCovering
+-```
+-
+-**REPL Commands**
+-
+-Type `Clusters.` and hit TAB
+-
+-### `zcl ? <Cluster>`
+-
+-List available commands in cluster. For example, for _Basic Information_
+-cluster:
+-
+-```
+-chip-device-ctrl > zcl ? BasicInformation
+-DataModelRevision
+-VendorName
+-VendorID
+-ProductName
+-ProductID
+-UserLabel
+-Location
+-HardwareVersion
+-HardwareVersionString
+-SoftwareVersion
+-SoftwareVersionString
+-ManufacturingDate
+-PartNumber
+-ProductURL
+-ProductLabel
+-SerialNumber
+-LocalConfigDisabled
+-ClusterRevision
+-```
+-
+-**REPL Commands**
+-
+-Type `Clusters.(cluster name).Commands.` and hit TAB
+-
+-### `zclread <Cluster> <Attribute> <NodeId> <EndpointId> <GroupId> [arguments]`
+-
+-Read the value of ZCL attribute. For example:
+-
+-```
+-chip-device-ctrl > zclread BasicInformation VendorName 1234 1 0
+-```
+-
+-**REPL Commands**
+-
+-```python
+-# devCtrl.ReadAttribute(<nodeid>, [(<endpoint id>, Clusters.<cluster>.Attributes.<attribute>)])
+-# e.g.
+-await devCtrl.ReadAttribute(1234, [(1, Clusters.BasicInformation.Attributes.VendorName)])
+-```
+-
+-### `zclwrite <cluster> <attribute> <nodeid> <endpoint> <groupid> <value>`
+-
+-Write the value to a ZCL attribute. For example:
+-
+-```
+-chip-device-ctrl > zclwrite TestCluster Int8u 1 1 0 1
+-chip-device-ctrl > zclwrite TestCluster Boolean 1 1 0 True
+-chip-device-ctrl > zclwrite TestCluster OctetString 1 1 0 str:123123
+-chip-device-ctrl > zclwrite TestCluster CharString 1 1 0 233233
++await devCtrl.ReadAttribute(1234, [(0, Clusters.BasicInformation.Attributes.VendorName)])
+ ```
+ 
+-Note: The format of the value is the same as the format of argument values for
+-ZCL cluster commands.
++### `WriteAttribute(<nodeid>: int, [(<endpointid>: int, Clusters.<cluster>.Attributes.<attribute>(value=<attribute value>))])`
+ 
+-**REPL Commands**
++Write a value to an attribute. For example:
+ 
+ ```python
+-# devCtrl.WriteAttribute(<nodeid>, [(<endpointid>, Clusters.<cluster>.Attributes.<attribute>(value=<attribute value>))])
+-# e.g.
+-await devCtrl.WriteAttribute(1, [(1, Clusters.UnitTesting.Attributes.Int8u(value=1))])
+-await devCtrl.WriteAttribute(1, [(1, Clusters.UnitTesting.Attributes.Boolean(value=True))])
+-await devCtrl.WriteAttribute(1, [(1, Clusters.UnitTesting.Attributes.OctetString(value=b'123123\x00'))])
+-await devCtrl.WriteAttribute(1, [(1, Clusters.UnitTesting.Attributes.CharString(value='233233'))])
++await devCtrl.WriteAttribute(1234, [(1, Clusters.UnitTesting.Attributes.Int8u(value=1))])
++await devCtrl.WriteAttribute(1234, [(1, Clusters.UnitTesting.Attributes.Boolean(value=True))])
++await devCtrl.WriteAttribute(1234, [(1, Clusters.UnitTesting.Attributes.OctetString(value=b'123123\x00'))])
++await devCtrl.WriteAttribute(1234, [(1, Clusters.UnitTesting.Attributes.CharString(value='233233'))])
+ ```
+ 
+-### `zclsubscribe <Cluster> <Attribute> <Nodeid> <Endpoint> <MinInterval> <MaxInterval>`
++### `ReadAttribute(<nodeid>: int, [(<endpoint>: int, Clusters.<cluster>.Attributes.<attribute>)], reportInterval=(<min interval>: int, <max interval>: int))`
+ 
+-Configure ZCL attribute reporting settings. For example:
+-
+-```
+-chip-device-ctrl > zclsubscribe OccupancySensing Occupancy 1234 1 10 20
+-```
+-
+-**REPL Commands**
++Configure Matter attribute reporting settings. For example:
+ 
+ ```python
+-# devCtrl.ReadAttribute(<nodeid>, [(<endpoint>, Clusters.<cluster>.Attributes.<attribute>)], reportInterval=(<min interval>, <max interval>))
+-# e.g.
+-await devCtrl.ReadAttribute(1, [(1, Clusters.OccupancySensing.Attributes.Occupancy)], reportInterval=(10, 20))
++await devCtrl.ReadAttribute(1234, [(1, Clusters.OccupancySensing.Attributes.Occupancy)], reportInterval=(10, 20))
+ ```
+ 
+-### `zclsubscribe -shutdown <subscription id>`
+-
+-Shutdown an existing attribute subscription.
++To shutdown an existing attribute subscription use the `Shutdown()` function on
++the returned subscription object:
+ 
+-```
+-chip-device-ctrl > zclsubscribe -shutdown 0xdeadbeefcafe
++```python
++sub = await devCtrl.ReadAttribute(1234, [(1, Clusters.OccupancySensing.Attributes.Occupancy)], reportInterval=(10, 20))
++sub.Shutdown()
+ ```
+ 
+-The subscription id can be obtained from previous subscription messages:
++## Explore Clusters, Attributes and Commands
+ 
+-```
+-chip-device-ctrl > zclsubscribe OnOff OnOff 1 1 10 20
+-(omitted messages)
+-[1633922898.965587][1117858:1117866] CHIP:DMG: SubscribeResponse =
+-[1633922898.965599][1117858:1117866] CHIP:DMG: {
+-[1633922898.965610][1117858:1117866] CHIP:DMG:  SubscriptionId = 0xdeadbeefcafe,
+-[1633922898.965622][1117858:1117866] CHIP:DMG:  MinIntervalFloorSeconds = 0xa,
+-[1633922898.965633][1117858:1117866] CHIP:DMG:  MaxIntervalCeilingSeconds = 0x14,
+-[1633922898.965644][1117858:1117866] CHIP:DMG: }
+-[1633922898.965662][1117858:1117866] CHIP:ZCL: SubscribeResponse:
+-[1633922898.965673][1117858:1117866] CHIP:ZCL:   SubscriptionId:        0xdeadbeefcafe
+-[1633922898.965683][1117858:1117866] CHIP:ZCL:   ApplicationIdentifier: 0
+-[1633922898.965694][1117858:1117866] CHIP:ZCL:   status: EMBER_ZCL_STATUS_SUCCESS (0x00)
+-[1633922898.965709][1117858:1117866] CHIP:ZCL:   attributeValue: false
+-(omitted messages)
+-```
++In the Python REPL the Clusters and Attributes are classes. The `Clusters`
++module contains all clusters. Tab completion can be used to explore available
++clusters, attributes and commands.
+ 
+-The subscription id is `0xdeadbeefcafe` in this case
++For example, to get a list of Clusters, type `Clusters.` and hit tab. Continue
++to hit tab to cycle through the available Clusters. Pressing return will select
++the Cluster.
+ 
+-**REPL Commands**
++To explore Attributes, use the same technique but with the Attributes sub-class
++of the Clusters class, for example, type `Clusters.(cluster name).Attributes.`
++and hit tab.
+ 
+-```python
+-# SubscriptionTransaction.Shutdown()
+-# e.g.
+-sub = await devCtrl.ReadAttribute(1, [(1, Clusters.OccupancySensing.Attributes.Occupancy)], reportInterval=(10, 20))
+-sub.Shutdown()
+-```
++The same is true for Commands, use the Commands sub-class. type
++`Clusters.(cluster name).Commands.` and hit tab.
+diff --git a/examples/lighting-app/infineon/cyw30739/README.md b/examples/lighting-app/infineon/cyw30739/README.md
+index f085272b1c..ac11bb3033 100644
+--- a/examples/lighting-app/infineon/cyw30739/README.md
++++ b/examples/lighting-app/infineon/cyw30739/README.md
+@@ -104,19 +104,7 @@ Put the CYW30739 in to the recovery mode before running the flash script.
+     [Openthread_border_router](https://github.com/project-chip/connectedhomeip/blob/master/docs/guides/openthread_border_router_pi.md)
+     for more information on how to setup a border router on a raspberryPi.
+ 
+--   You can provision and control the Chip device using the python controller,
+-    Chip tool standalone, Android or iOS app
++-   You can provision and control the device using the Python controller REPL,
++    chip-tool standalone, Android or iOS app
+ 
+     [Python Controller](https://github.com/project-chip/connectedhomeip/blob/master/src/controller/python/README.md)
+-
+-    Here is an example with the Python controller:
+-
+-    ```bash
+-    $ chip-device-ctrl
+-    chip-device-ctrl > connect -ble 3840 20202021 1234
+-    chip-device-ctrl > zcl NetworkCommissioning AddThreadNetwork 1234 0 0 operationalDataset=hex:0e080000000000000000000300000b35060004001fffe00208dead00beef00cafe0708fddead00beef000005108e11d8ea8ffaa875713699f59e8807e0030a4f70656e5468726561640102c2980410edc641eb63b100b87e90a9980959befc0c0402a0fff8 breadcrumb=0 timeoutMs=1000
+-    chip-device-ctrl > zcl NetworkCommissioning EnableNetwork 1234 0 0 networkID=hex:dead00beef00cafe breadcrumb=0 timeoutMs=1000
+-    chip-device-ctrl > close-ble
+-    chip-device-ctrl > resolve 1234
+-    chip-device-ctrl > zcl OnOff Toggle 1234 1 0
+-    ```
+diff --git a/examples/lighting-app/python/README.md b/examples/lighting-app/python/README.md
+index 8e34e59dea..a935a165c9 100644
+--- a/examples/lighting-app/python/README.md
++++ b/examples/lighting-app/python/README.md
+@@ -32,17 +32,6 @@ cd examples/lighting-app/python
+ python lighting.py
+ ```
+ 
+-Control the Python lighting matter device:
++Control the Python lighting matter device using the Python controller REPL:
+ 
+-```shell
+-source ./out/python_env/bin/activate
+-
+-chip-device-ctrl
+-
+-chip-device-ctrl > connect -ble 3840 20202021 12344321
+-chip-device-ctrl > zcl NetworkCommissioning AddOrUpdateWiFiNetwork 12344321 0 0 ssid=str:YOUR_SSID credentials=str:YOUR_PASSWORD breadcrumb=0
+-chip-device-ctrl > zcl NetworkCommissioning ConnectNetwork 12344321 0 0 networkID=str:YOUR_SSID breadcrumb=0
+-chip-device-ctrl > close-ble
+-chip-device-ctrl > resolve 5544332211 1 (pass appropriate fabric ID and node ID, you can get this from get-fabricid)
+-chip-device-ctrl > zcl OnOff Toggle 12344321 1 0
+-```
++[Python Controller](https://github.com/project-chip/connectedhomeip/blob/master/src/controller/python/README.md)
+diff --git a/examples/lock-app/infineon/cyw30739/README.md b/examples/lock-app/infineon/cyw30739/README.md
+index b91f4b9157..86c9cf0490 100644
+--- a/examples/lock-app/infineon/cyw30739/README.md
++++ b/examples/lock-app/infineon/cyw30739/README.md
+@@ -104,19 +104,7 @@ Put the CYW30739 in to the recovery mode before running the flash script.
+     [Openthread_border_router](https://github.com/project-chip/connectedhomeip/blob/master/docs/guides/openthread_border_router_pi.md)
+     for more information on how to setup a border router on a raspberryPi.
+ 
+--   You can provision and control the Chip device using the python controller,
+-    Chip tool standalone, Android or iOS app
++-   You can provision and control the device using the Python controller REPL,
++    chip-tool standalone, Android or iOS app
+ 
+     [Python Controller](https://github.com/project-chip/connectedhomeip/blob/master/src/controller/python/README.md)
+-
+-    Here is an example with the Python controller:
+-
+-    ```bash
+-    $ chip-device-ctrl
+-    chip-device-ctrl > connect -ble 3840 20202021 1234
+-    chip-device-ctrl > zcl NetworkCommissioning AddThreadNetwork 1234 0 0 operationalDataset=hex:0e080000000000000000000300000b35060004001fffe00208dead00beef00cafe0708fddead00beef000005108e11d8ea8ffaa875713699f59e8807e0030a4f70656e5468726561640102c2980410edc641eb63b100b87e90a9980959befc0c0402a0fff8 breadcrumb=0 timeoutMs=1000
+-    chip-device-ctrl > zcl NetworkCommissioning EnableNetwork 1234 0 0 networkID=hex:dead00beef00cafe breadcrumb=0 timeoutMs=1000
+-    chip-device-ctrl > close-ble
+-    chip-device-ctrl > resolve 1234
+-    chip-device-ctrl > zcl OnOff Toggle 1234 1 0
+-    ```
+diff --git a/scripts/tools/linux_ip_namespace_setup.sh b/scripts/tools/linux_ip_namespace_setup.sh
+index 5d467b4b48..f761eea384 100755
+--- a/scripts/tools/linux_ip_namespace_setup.sh
++++ b/scripts/tools/linux_ip_namespace_setup.sh
+@@ -124,7 +124,7 @@ function help() {
+     echo "sudo <path>/$file_name -r <path>/<application_name>"
+     echo ""
+     echo "Terminal 2:"
+-    echo "<path>/chip-device-ctrl"
++    echo "<path>/chip-repl"
+     echo ""
+     echo "This script requires sudo for setup and requires access to ebtables-legacy"
+     echo "to set up dual ipv4/ipv6 namespaces. Defaults to ipv6 only."
+diff --git a/src/controller/README.md b/src/controller/README.md
+index e46c191f55..70a3fa5e8f 100644
+--- a/src/controller/README.md
++++ b/src/controller/README.md
+@@ -26,7 +26,7 @@ The POSIX CLI chip-tool is located in
+ 
+ ### Python
+ 
+-The Python chip-device-ctrl is located in
++The Python CHIP Controller library is located in
+ [../controller/python/](../controller/python).
+ 
+ ## Feature Overview
+diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
+index caa33c3a40..e7b06d808e 100644
+--- a/src/controller/python/BUILD.gn
++++ b/src/controller/python/BUILD.gn
+@@ -414,10 +414,7 @@ chip_python_wheel_action("chip-clusters") {
+ }
+ 
+ chip_python_wheel_action("chip-repl") {
+-  py_scripts = [
+-    "chip-device-ctrl.py",
+-    "chip-repl.py",
+-  ]
++  py_scripts = [ "chip-repl.py" ]
+ 
+   py_manifest_files = [
+     {
+diff --git a/src/controller/python/README.md b/src/controller/python/README.md
+index 34edea4446..e94a95e158 100644
+--- a/src/controller/python/README.md
++++ b/src/controller/python/README.md
+@@ -1,10 +1,14 @@
+-# Python CHIP Device Controller
++# Python CHIP Controller
+ 
+-The Python CHIP controller is a tool that allows to commission a Matter device
+-into the network and to communicate with it using the Zigbee Cluster Library
+-(ZCL) messages. The tool uses the generic [Chip Device Controller](../) library.
++The Python CHIP controller is a library that allows to create a Matter fabric
++and commission Matter devices with it, as well as communicate with commissioned
++devices by reading/subscribing and writing Attributes and sending Commands. The
++Python CHIP controller is based on the native [Chip Device Controller](../)
++library.
+ 
+-To learn more about the tool, how to build it and use its commands and advanced
++The Python CHIP Controller comes with a REPL which allows to explore and use the
++Python CHIP controller library from a shell. To learn more about the Python CHIP
++Controller and the REPL, how to build it and use its commands and advanced
+ features, read the following guides:
+ 
+ -   [Working with Python CHIP Controller](../../../docs/guides/python_chip_controller_building.md)
+diff --git a/src/controller/python/chip-device-ctrl.py b/src/controller/python/chip-device-ctrl.py
+deleted file mode 100755
+index 469fb2c49f..0000000000
+--- a/src/controller/python/chip-device-ctrl.py
++++ /dev/null
+@@ -1,1202 +0,0 @@
+-#!/usr/bin/env python
+-
+-#
+-#    Copyright (c) 2020-2021 Project CHIP Authors
+-#    Copyright (c) 2013-2018 Nest Labs, Inc.
+-#    All rights reserved.
+-#
+-#    Licensed under the Apache License, Version 2.0 (the "License");
+-#    you may not use this file except in compliance with the License.
+-#    You may obtain a copy of the License at
+-#
+-#        http://www.apache.org/licenses/LICENSE-2.0
+-#
+-#    Unless required by applicable law or agreed to in writing, software
+-#    distributed under the License is distributed on an "AS IS" BASIS,
+-#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-#    See the License for the specific language governing permissions and
+-#    limitations under the License.
+-#
+-
+-#
+-#    @file
+-#      This file implements the Python-based Chip Device Controller Shell.
+-#
+-
+-from __future__ import absolute_import, print_function
+-
+-import argparse
+-import base64
+-import ctypes
+-import logging
+-import os
+-import platform
+-import random
+-import shlex
+-import string
+-import sys
+-import textwrap
+-import time
+-import traceback
+-import warnings
+-from cmd import Cmd
+-from optparse import OptionParser, OptionValueError
+-
+-import chip.logging
+-import coloredlogs
+-from chip import ChipCommissionableNodeCtrl, ChipStack, exceptions, native
+-from chip.setup_payload import SetupPayload
+-from rich import pretty, print
+-
+-# Extend sys.path with one or more directories, relative to the location of the
+-# running script, in which the chip package might be found .  This makes it
+-# possible to run the device manager shell from a non-standard install location,
+-# as well as directly from its location the CHIP source tree.
+-#
+-# Note that relative package locations are prepended to sys.path so as to give
+-# the local version of the package higher priority over any version installed in
+-# a standard location.
+-#
+-scriptDir = os.path.dirname(os.path.abspath(__file__))
+-relChipPackageInstallDirs = [
+-    ".",
+-    "../lib/python",
+-    "../lib/python%s.%s" % (sys.version_info.major, sys.version_info.minor),
+-    "../lib/Python%s%s" % (sys.version_info.major, sys.version_info.minor),
+-]
+-for relInstallDir in relChipPackageInstallDirs:
+-    absInstallDir = os.path.realpath(os.path.join(scriptDir, relInstallDir))
+-    if os.path.isdir(os.path.join(absInstallDir, "chip")):
+-        sys.path.insert(0, absInstallDir)
+-
+-
+-if platform.system() == 'Darwin':
+-    from chip.ChipCoreBluetoothMgr import CoreBluetoothManager as BleManager
+-elif sys.platform.startswith('linux'):
+-    from chip.ChipBluezMgr import BluezManager as BleManager
+-
+-# The exceptions for CHIP Device Controller CLI
+-
+-
+-class ChipDevCtrlException(exceptions.ChipStackException):
+-    pass
+-
+-
+-class ParsingError(ChipDevCtrlException):
+-    def __init__(self, msg=None):
+-        self.msg = "Parsing Error: " + msg
+-
+-    def __str__(self):
+-        return self.msg
+-
+-
+-def DecodeBase64Option(option, opt, value):
+-    try:
+-        return base64.standard_b64decode(value)
+-    except TypeError:
+-        raise OptionValueError(
+-            "option %s: invalid base64 value: %r" % (opt, value))
+-
+-
+-def DecodeHexIntOption(option, opt, value):
+-    try:
+-        return int(value, 16)
+-    except ValueError:
+-        raise OptionValueError("option %s: invalid value: %r" % (opt, value))
+-
+-
+-def ParseEncodedString(value):
+-    if value.find(":") < 0:
+-        raise ParsingError(
+-            "value should be encoded in encoding:encodedvalue format")
+-    enc, encValue = value.split(":", 1)
+-    if enc == "str":
+-        return encValue.encode("utf-8") + b'\x00'
+-    elif enc == "hex":
+-        return bytes.fromhex(encValue)
+-    raise ParsingError("only str and hex encoding is supported")
+-
+-
+-def ParseValueWithType(value, type):
+-    if type == 'int':
+-        return int(value)
+-    elif type == 'str':
+-        return value
+-    elif type == 'bytes':
+-        return ParseEncodedString(value)
+-    elif type == 'bool':
+-        return (value.upper() not in ['F', 'FALSE', '0'])
+-    else:
+-        raise ParsingError('cannot recognize type: {}'.format(type))
+-
+-
+-def FormatZCLArguments(args, command):
+-    commandArgs = {}
+-    for kvPair in args:
+-        if kvPair.find("=") < 0:
+-            raise ParsingError("Argument should in key=value format")
+-        key, value = kvPair.split("=", 1)
+-        valueType = command.get(key, None)
+-        commandArgs[key] = ParseValueWithType(value, valueType)
+-    return commandArgs
+-
+-
+-def ShowColoredWarnings(message, category, filename, lineno, file=None, line=None):
+-    logging.warning(' %s:%s: %s:%s' %
+-                    (filename, lineno, category.__name__, message))
+-    return
+-
+-
+-class DeviceMgrCmd(Cmd):
+-    def __init__(self, rendezvousAddr=None, controllerNodeId=1, bluetoothAdapter=None):
+-        self.lastNetworkId = None
+-        self.replHint = None
+-
+-        pretty.install(indent_guides=True, expand_all=True)
+-
+-        coloredlogs.install(level='DEBUG')
+-        chip.logging.RedirectToPythonLogging()
+-
+-        logging.getLogger().setLevel(logging.DEBUG)
+-        warnings.showwarning = ShowColoredWarnings
+-
+-        Cmd.__init__(self)
+-
+-        Cmd.identchars = string.ascii_letters + string.digits + "-"
+-
+-        if sys.stdin.isatty():
+-            self.prompt = "chip-device-ctrl > "
+-        else:
+-            self.use_rawinput = 0
+-            self.prompt = ""
+-
+-        DeviceMgrCmd.command_names.sort()
+-
+-        self.bleMgr = None
+-
+-        self.chipStack = ChipStack.ChipStack(
+-            bluetoothAdapter=bluetoothAdapter, persistentStoragePath='/tmp/chip-device-ctrl-storage.json')
+-        self.certificateAuthorityManager = chip.CertificateAuthority.CertificateAuthorityManager(chipStack=self.chipStack)
+-        self.certificateAuthority = self.certificateAuthorityManager.NewCertificateAuthority()
+-        self.fabricAdmin = self.certificateAuthority.NewFabricAdmin(vendorId=0xFFF1, fabricId=1)
+-        self.devCtrl = self.fabricAdmin.NewController(
+-            nodeId=controllerNodeId, useTestCommissioner=True)
+-
+-        self.commissionableNodeCtrl = ChipCommissionableNodeCtrl.ChipCommissionableNodeController(
+-            self.chipStack)
+-
+-        # If we are on Linux and user selects non-default bluetooth adapter.
+-        if sys.platform.startswith("linux") and (bluetoothAdapter is not None):
+-            try:
+-                self.bleMgr = BleManager(self.devCtrl)
+-                self.bleMgr.ble_adapter_select(
+-                    "hci{}".format(bluetoothAdapter))
+-            except Exception as ex:
+-                traceback.print_exc()
+-                print(
+-                    "Failed to initialize BLE, if you don't have BLE, run chip-device-ctrl with --no-ble")
+-                raise ex
+-
+-        self.historyFileName = os.path.expanduser(
+-            "~/.chip-device-ctrl-history")
+-
+-        try:
+-            import readline
+-
+-            if "libedit" in readline.__doc__:
+-                readline.parse_and_bind("bind ^I rl_complete")
+-            readline.set_completer_delims(" ")
+-            try:
+-                readline.read_history_file(self.historyFileName)
+-            except IOError:
+-                pass
+-        except ImportError:
+-            pass
+-
+-    command_names = [
+-        "setup-payload",
+-
+-        "ble-scan",
+-        "ble-adapter-select",
+-        "ble-adapter-print",
+-        "ble-debug-log",
+-
+-        "connect",
+-        "close-ble",
+-        "close-session",
+-        "resolve",
+-        "paseonly",
+-        "commission",
+-        "zcl",
+-        "zclread",
+-        "zclsubscribe",
+-
+-        "discover",
+-
+-        "set-pairing-wifi-credential",
+-        "set-pairing-thread-credential",
+-
+-        "open-commissioning-window",
+-
+-        "get-fabricid",
+-    ]
+-
+-    def parseline(self, line):
+-        cmd, arg, line = Cmd.parseline(self, line)
+-        if cmd:
+-            cmd = self.shortCommandName(cmd)
+-            line = cmd + " " + arg
+-        return cmd, arg, line
+-
+-    def completenames(self, text, *ignored):
+-        return [
+-            name + " "
+-            for name in DeviceMgrCmd.command_names
+-            if name.startswith(text) or self.shortCommandName(name).startswith(text)
+-        ]
+-
+-    def shortCommandName(self, cmd):
+-        return cmd.replace("-", "")
+-
+-    def precmd(self, line):
+-        if not self.use_rawinput and line != "EOF" and line != "":
+-            print(">>> " + line)
+-        return line
+-
+-    def postcmd(self, stop, line):
+-        if self.replHint is not None:
+-            print("Try the following command in repl: ")
+-            print(self.replHint)
+-            print("")
+-        self.replHint = None
+-        if not stop and self.use_rawinput:
+-            self.prompt = "chip-device-ctrl > "
+-        return stop
+-
+-    def postloop(self):
+-        try:
+-            import readline
+-
+-            try:
+-                readline.write_history_file(self.historyFileName)
+-            except IOError:
+-                pass
+-        except ImportError:
+-            pass
+-
+-    def do_help(self, line):
+-        if line:
+-            cmd, arg, unused = self.parseline(line)
+-            try:
+-                doc = getattr(self, "do_" + cmd).__doc__
+-            except AttributeError:
+-                doc = None
+-            if doc:
+-                self.stdout.write("%s\n" % textwrap.dedent(doc))
+-            else:
+-                self.stdout.write("No help on %s\n" % (line))
+-        else:
+-            self.print_topics(
+-                "\nAvailable commands (type help <name> for more information):",
+-                DeviceMgrCmd.command_names,
+-                15,
+-                80,
+-            )
+-
+-    def do_closeble(self, line):
+-        """
+-        close-ble
+-
+-        Close the ble connection to the device.
+-        """
+-
+-        warnings.warn(
+-            "This method is being deprecated. "
+-            "Please use the DeviceController.CloseBLEConnection method directly in the REPL", DeprecationWarning)
+-
+-        args = shlex.split(line)
+-
+-        if len(args) != 0:
+-            print("Usage:")
+-            self.do_help("close")
+-            return
+-
+-        try:
+-            self.devCtrl.CloseBLEConnection()
+-        except exceptions.ChipStackException as ex:
+-            print(str(ex))
+-
+-    def do_setlogoutput(self, line):
+-        """
+-        set-log-output [ none | error | progress | detail ]
+-
+-        Set the level of Chip logging output.
+-        """
+-
+-        warnings.warn(
+-            "This method is being deprecated. "
+-            "Please use the DeviceController.SetLogFilter method directly in the REPL", DeprecationWarning)
+-
+-        args = shlex.split(line)
+-
+-        if len(args) == 0:
+-            print("Usage:")
+-            self.do_help("set-log-output")
+-            return
+-        if len(args) > 1:
+-            print("Unexpected argument: " + args[1])
+-            return
+-
+-        category = args[0].lower()
+-        if category == "none":
+-            category = 0
+-        elif category == "error":
+-            category = 1
+-        elif category == "progress":
+-            category = 2
+-        elif category == "detail":
+-            category = 3
+-        else:
+-            print("Invalid argument: " + args[0])
+-            return
+-
+-        try:
+-            self.devCtrl.SetLogFilter(category)
+-        except exceptions.ChipStackException as ex:
+-            print(str(ex))
+-            return
+-
+-    def do_setuppayload(self, line):
+-        """
+-        setup-payload generate [options]
+-
+-        Options:
+-          -vr  Version
+-          -vi  Vendor ID
+-          -pi  Product ID
+-          -cf  Custom Flow [Standard = 0, UserActionRequired = 1, Custom = 2]
+-          -dc  Discovery Capabilities [SoftAP = 1 | BLE = 2 | OnNetwork = 4]
+-          -dv  Discriminator Value
+-          -ps  Passcode
+-
+-        setup-payload parse-manual <manual-pairing-code>
+-        setup-payload parse-qr <qr-code-payload>
+-        """
+-
+-        warnings.warn(
+-            "This method is being deprecated. "
+-            "Please use the SetupPayload function in the chip.setup_payload package directly", DeprecationWarning)
+-
+-        try:
+-            arglist = shlex.split(line)
+-            if arglist[0] not in ("generate", "parse-manual", "parse-qr"):
+-                self.do_help("setup-payload")
+-                return
+-
+-            if arglist[0] == "generate":
+-                parser = argparse.ArgumentParser()
+-                parser.add_argument("-vr", type=int, default=0, dest='version')
+-                parser.add_argument(
+-                    "-pi", type=int, default=0, dest='productId')
+-                parser.add_argument(
+-                    "-vi", type=int, default=0, dest='vendorId')
+-                parser.add_argument(
+-                    '-cf', type=int, default=0, dest='customFlow')
+-                parser.add_argument(
+-                    "-dc", type=int, default=0, dest='capabilities')
+-                parser.add_argument(
+-                    "-dv", type=int, default=0, dest='discriminator')
+-                parser.add_argument("-ps", type=int, dest='passcode')
+-                args = parser.parse_args(arglist[1:])
+-
+-                SetupPayload().PrintOnboardingCodes(args.passcode, args.vendorId, args.productId,
+-                                                    args.discriminator, args.customFlow, args.capabilities, args.version)
+-
+-            if arglist[0] == "parse-manual":
+-                SetupPayload().ParseManualPairingCode(arglist[1]).Print()
+-
+-            if arglist[0] == "parse-qr":
+-                SetupPayload().ParseQrCode(arglist[1]).Print()
+-
+-        except exceptions.ChipStackException as ex:
+-            print(str(ex))
+-            return
+-
+-    def do_bleadapterselect(self, line):
+-        """
+-        ble-adapter-select
+-
+-        Start BLE adapter select, deprecated, you can select adapter by command line arguments.
+-        """
+-        if sys.platform.startswith("linux"):
+-            if not self.bleMgr:
+-                self.bleMgr = BleManager(self.devCtrl)
+-
+-            self.bleMgr.ble_adapter_select(line)
+-            print(
+-                "This change only applies to ble-scan\n"
+-                "Please run device controller with --bluetooth-adapter=<adapter-name> to select adapter\n" +
+-                "e.g. chip-device-ctrl --bluetooth-adapter hci0"
+-            )
+-        else:
+-            print(
+-                "ble-adapter-select only works in Linux, ble-adapter-select mac_address"
+-            )
+-
+-        return
+-
+-    def do_bleadapterprint(self, line):
+-        """
+-        ble-adapter-print
+-
+-        Print attached BLE adapter.
+-        """
+-        if sys.platform.startswith("linux"):
+-            if not self.bleMgr:
+-                self.bleMgr = BleManager(self.devCtrl)
+-
+-            self.bleMgr.ble_adapter_print()
+-        else:
+-            print("ble-adapter-print only works in Linux")
+-
+-        return
+-
+-    def do_bledebuglog(self, line):
+-        """
+-        ble-debug-log 0:1
+-          0: disable BLE debug log
+-          1: enable BLE debug log
+-        """
+-        if not self.bleMgr:
+-            self.bleMgr = BleManager(self.devCtrl)
+-
+-        self.bleMgr.ble_debug_log(line)
+-
+-        return
+-
+-    def do_blescan(self, line):
+-        """
+-        ble-scan
+-
+-        Start BLE scanning operations.
+-        """
+-
+-        if not self.bleMgr:
+-            self.bleMgr = BleManager(self.devCtrl)
+-
+-        self.bleMgr.scan(line)
+-
+-        return
+-
+-    def ConnectFromSetupPayload(self, setupPayload, nodeid):
+-        # TODO(cecille): Get this from the C++ code?
+-        ble = 1 << 1
+-        # Devices may be uncommissioned, or may already be on the network. Need to check both ways.
+-        # TODO(cecille): implement soft-ap connection.
+-
+-        # Any device that is already commissioned into a fabric needs to use on-network
+-        # pairing, so look first on the network regardless of the QR code contents.
+-        print("Attempting to find device on Network")
+-        longDiscriminator = ctypes.c_uint16(
+-            int(setupPayload.attributes['Discriminator']))
+-        self.devCtrl.DiscoverCommissionableNodesLongDiscriminator(
+-            longDiscriminator)
+-        print("Waiting for device responses...")
+-        strlen = 100
+-        addrStrStorage = ctypes.create_string_buffer(strlen)
+-        # If this device is on the network and we're looking specifically for 1 device,
+-        # expect a quick response.
+-        if self.wait_for_one_discovered_device():
+-            self.devCtrl.GetIPForDiscoveredDevice(
+-                0, addrStrStorage, strlen)
+-            addrStr = addrStrStorage.value.decode('utf-8')
+-            print("Connecting to device at " + addrStr)
+-            pincode = ctypes.c_uint32(
+-                int(setupPayload.attributes['SetUpPINCode']))
+-            try:
+-                self.devCtrl.CommissionIP(addrStrStorage, pincode, nodeid)
+-                print("Connected")
+-                return 0
+-            except Exception as ex:
+-                print(f"Unable to connect on network: {ex}")
+-        else:
+-            print("Unable to locate device on network")
+-
+-        if int(setupPayload.attributes["RendezvousInformation"]) & ble:
+-            print("Attempting to connect via BLE")
+-            longDiscriminator = ctypes.c_uint16(
+-                int(setupPayload.attributes['Discriminator']))
+-            pincode = ctypes.c_uint32(
+-                int(setupPayload.attributes['SetUpPINCode']))
+-            try:
+-                self.devCtrl.ConnectBLE(longDiscriminator, pincode, nodeid)
+-                print("Connected")
+-                return 0
+-            except Exception as ex:
+-                print(f"Unable to connect: {ex}")
+-        return -1
+-
+-    def do_paseonly(self, line):
+-        """
+-        paseonly -ip <ip address> <setup pin code> [<nodeid>]
+-
+-        TODO: Add more methods to connect to device (like cert for auth, and IP
+-              for connection)
+-        """
+-
+-        try:
+-            args = shlex.split(line)
+-            if len(args) <= 1:
+-                print("Usage:")
+-                self.do_help("paseonly")
+-                return
+-            nodeid = random.randint(1, 1000000)  # Just a random number
+-            if len(args) == 4:
+-                nodeid = int(args[3])
+-            print("Device is assigned with nodeid = {}".format(nodeid))
+-            self.replHint = f"devCtrl.EstablishPASESessionIP({repr(args[1])}, {int(args[2])}, {nodeid})"
+-            if args[0] == "-ip" and len(args) >= 3:
+-                self.devCtrl.EstablishPASESessionIP(args[1], int(args[2]), nodeid)
+-            else:
+-                print("Usage:")
+-                self.do_help("paseonly")
+-                return
+-            print(
+-                "Device temporary node id (**this does not match spec**): {}".format(nodeid))
+-        except Exception as ex:
+-            print(str(ex))
+-            return
+-
+-    def do_commission(self, line):
+-        """
+-        commission nodeid
+-
+-        Runs commissioning on a device that has been connected with paseonly
+-        """
+-        try:
+-            args = shlex.split(line)
+-            if len(args) != 1:
+-                print("Usage:")
+-                self.do_help("commission")
+-                return
+-            nodeid = int(args[0])
+-            self.replHint = f"devCtrl.Commission({nodeid})"
+-            self.devCtrl.Commission(nodeid)
+-        except Exception as ex:
+-            print(str(ex))
+-            return
+-
+-    def do_connect(self, line):
+-        """
+-        connect -ip <ip address> <setup pin code> [<nodeid>]
+-        connect -ble <discriminator> <setup pin code> [<nodeid>]
+-        connect -qr <qr code> [<nodeid>]
+-        connect -code <manual pairing code> [<nodeid>]
+-
+-        connect command is used for establishing a rendezvous session to the device.
+-        currently, only connect using setupPinCode is supported.
+-        -qr option will connect to the first device with a matching long discriminator.
+-
+-        TODO: Add more methods to connect to device (like cert for auth, and IP
+-              for connection)
+-        """
+-
+-        warnings.warn(
+-            "This method is being deprecated. "
+-            "Please use the DeviceController.[ConnectBLE|CommissionIP] methods directly in the REPL", DeprecationWarning)
+-
+-        try:
+-            args = shlex.split(line)
+-            if len(args) <= 1:
+-                print("Usage:")
+-                self.do_help("connect SetupPinCode")
+-                return
+-
+-            nodeid = random.randint(1, 1000000)  # Just a random number
+-            if len(args) == 4:
+-                nodeid = int(args[3])
+-            print("Device is assigned with nodeid = {}".format(nodeid))
+-
+-            if args[0] == "-ip" and len(args) >= 3:
+-                self.replHint = f"devCtrl.CommissionIP({repr(args[1])}, {int(args[2])}, {nodeid})"
+-                self.devCtrl.CommissionIP(args[1], int(args[2]), nodeid)
+-            elif args[0] == "-ble" and len(args) >= 3:
+-                self.replHint = f"devCtrl.ConnectBLE({int(args[1])}, {int(args[2])}, {nodeid})"
+-                self.devCtrl.ConnectBLE(int(args[1]), int(args[2]), nodeid)
+-            elif args[0] in ['-qr', '-code'] and len(args) >= 2:
+-                if len(args) == 3:
+-                    nodeid = int(args[2])
+-                print("Parsing QR code {}".format(args[1]))
+-
+-                setupPayload = None
+-                if args[0] == '-qr':
+-                    setupPayload = SetupPayload().ParseQrCode(args[1])
+-                elif args[0] == '-code':
+-                    setupPayload = SetupPayload(
+-                    ).ParseManualPairingCode(args[1])
+-
+-                if not int(setupPayload.attributes.get("RendezvousInformation", 0)):
+-                    print("No rendezvous information provided, default to all.")
+-                    setupPayload.attributes["RendezvousInformation"] = 0b111
+-                setupPayload.Print()
+-                self.replHint = f"devCtrl.CommissionWithCode(setupPayload={repr(setupPayload)}, nodeid={nodeid})"
+-                self.ConnectFromSetupPayload(setupPayload, nodeid)
+-            else:
+-                print("Usage:")
+-                self.do_help("connect SetupPinCode")
+-                return
+-            print(
+-                "Device temporary node id (**this does not match spec**): {}".format(nodeid))
+-        except exceptions.ChipStackException as ex:
+-            print(str(ex))
+-            return
+-
+-    def do_closesession(self, line):
+-        """
+-        close-session <nodeid>
+-
+-        Close any session associated with a given node ID.
+-        """
+-        try:
+-            parser = argparse.ArgumentParser()
+-            parser.add_argument('nodeid', type=int, help='Peer node ID')
+-            args = parser.parse_args(shlex.split(line))
+-            self.replHint = f"devCtrl.CloseSession({args.nodeid})"
+-            self.devCtrl.CloseSession(args.nodeid)
+-        except exceptions.ChipStackException as ex:
+-            print(str(ex))
+-        except Exception:
+-            self.do_help("close-session")
+-
+-    def do_resolve(self, line):
+-        """
+-        resolve <nodeid>
+-
+-        Resolve DNS-SD name corresponding with the given node ID and
+-        update address of the node in the device controller.
+-        """
+-        try:
+-            args = shlex.split(line)
+-            if len(args) == 1:
+-                try:
+-                    self.replHint = f"devCtrl.ResolveNode({int(args[0])});devCtrl.GetAddressAndPort({int(args[0])})"
+-                    self.devCtrl.ResolveNode(int(args[0]))
+-                    address = self.devCtrl.GetAddressAndPort(int(args[0]))
+-                    address = "{}:{}".format(
+-                        *address) if address else "unknown"
+-                    print("Current address: " + address)
+-                except exceptions.ChipStackException as ex:
+-                    print(str(ex))
+-            else:
+-                self.do_help("resolve")
+-        except exceptions.ChipStackException as ex:
+-            print(str(ex))
+-            return
+-
+-    def wait_for_one_discovered_device(self):
+-        print("Waiting for device responses...")
+-        strlen = 100
+-        addrStrStorage = ctypes.create_string_buffer(strlen)
+-        count = 0
+-        maxWaitTime = 2
+-        while (not self.devCtrl.GetIPForDiscoveredDevice(0, addrStrStorage, strlen) and count < maxWaitTime):
+-            time.sleep(0.2)
+-            count = count + 0.2
+-        return count < maxWaitTime
+-
+-    def wait_for_many_discovered_devices(self):
+-        # Discovery happens through mdns, which means we need to wait for responses to come back.
+-        # TODO(cecille): I suppose we could make this a command line arg. Or Add a callback when
+-        # x number of responses are received. For now, just 2 seconds. We can all wait that long.
+-        print("Waiting for device responses...")
+-        time.sleep(2)
+-
+-    def do_discover(self, line):
+-        """
+-        discover -qr qrcode
+-        discover -all
+-        discover -l long_discriminator
+-        discover -s short_discriminator
+-        discover -v vendor_id
+-        discover -t device_type
+-        discover -c
+-
+-        discover command is used to discover available devices.
+-        """
+-        try:
+-            arglist = shlex.split(line)
+-            if len(arglist) < 1:
+-                print("Usage:")
+-                self.do_help("discover")
+-                return
+-            parser = argparse.ArgumentParser()
+-            group = parser.add_mutually_exclusive_group()
+-            group.add_argument(
+-                '-all', help='discover all commissionable nodes and commissioners', action='store_true')
+-            group.add_argument(
+-                '-qr', help='discover commissionable nodes matching provided QR code', type=str)
+-            group.add_argument(
+-                '-l', help='discover commissionable nodes with given long discriminator', type=int)
+-            group.add_argument(
+-                '-s', help='discover commissionable nodes with given short discriminator', type=int)
+-            group.add_argument(
+-                '-v', help='discover commissionable nodes with given vendor ID', type=int)
+-            group.add_argument(
+-                '-t', help='discover commissionable nodes with given device type', type=int)
+-            group.add_argument(
+-                '-c', help='discover commissionable nodes in commissioning mode', action='store_true')
+-            args = parser.parse_args(arglist)
+-            if args.all:
+-                self.commissionableNodeCtrl.DiscoverCommissioners()
+-                self.wait_for_many_discovered_devices()
+-                self.commissionableNodeCtrl.PrintDiscoveredCommissioners()
+-                self.devCtrl.DiscoverAllCommissioning()
+-                self.wait_for_many_discovered_devices()
+-            elif args.qr is not None:
+-                setupPayload = SetupPayload().ParseQrCode(args.qr)
+-                longDiscriminator = ctypes.c_uint16(
+-                    int(setupPayload.attributes['Discriminator']))
+-                self.devCtrl.DiscoverCommissionableNodesLongDiscriminator(
+-                    longDiscriminator)
+-                self.wait_for_one_discovered_device()
+-            elif args.l is not None:
+-                self.devCtrl.DiscoverCommissionableNodesLongDiscriminator(
+-                    ctypes.c_uint16(args.l))
+-                self.wait_for_one_discovered_device()
+-            elif args.s is not None:
+-                self.devCtrl.DiscoverCommissionableNodesShortDiscriminator(
+-                    ctypes.c_uint16(args.s))
+-                self.wait_for_one_discovered_device()
+-            elif args.v is not None:
+-                self.devCtrl.DiscoverCommissionableNodesVendor(
+-                    ctypes.c_uint16(args.v))
+-                self.wait_for_many_discovered_devices()
+-            elif args.t is not None:
+-                self.devCtrl.DiscoverCommissionableNodesDeviceType(
+-                    ctypes.c_uint16(args.t))
+-                self.wait_for_many_discovered_devices()
+-            elif args.c is not None:
+-                self.devCtrl.DiscoverCommissionableNodesCommissioningEnabled()
+-                self.wait_for_many_discovered_devices()
+-            else:
+-                self.do_help("discover")
+-                return
+-            self.devCtrl.PrintDiscoveredDevices()
+-        except exceptions.ChipStackException as ex:
+-            print('exception')
+-            print(str(ex))
+-            return
+-        except Exception:
+-            self.do_help("discover")
+-            return
+-
+-    def do_zcl(self, line):
+-        """
+-        To send ZCL message to device:
+-        zcl <cluster> <command> <nodeid> <endpoint> <groupid> [key=value]...
+-        To get a list of clusters:
+-        zcl ?
+-        To get a list of commands in cluster:
+-        zcl ? <cluster>
+-
+-        Send ZCL command to device nodeid
+-        """
+-        try:
+-            args = shlex.split(line)
+-            all_commands = self.devCtrl.ZCLCommandList()
+-            if len(args) == 1 and args[0] == '?':
+-                print('\n'.join(all_commands.keys()))
+-            elif len(args) == 2 and args[0] == '?':
+-                if args[1] not in all_commands:
+-                    raise exceptions.UnknownCluster(args[1])
+-                for commands in all_commands.get(args[1]).items():
+-                    args = ", ".join(["{}: {}".format(argName, argType)
+-                                      for argName, argType in commands[1].items()])
+-                    print(commands[0])
+-                    if commands[1]:
+-                        print("  ", args)
+-                    else:
+-                        print("  <no arguments>")
+-            elif len(args) > 4:
+-                if args[0] not in all_commands:
+-                    raise exceptions.UnknownCluster(args[0])
+-                command = all_commands.get(args[0]).get(args[1], None)
+-                # When command takes no arguments, (not command) is True
+-                if command is None:
+-                    raise exceptions.UnknownCommand(args[0], args[1])
+-                req = eval(f"Clusters.{args[0]}.Commands.{args[1]}")(**FormatZCLArguments(args[5:], command))
+-                self.replHint = f"await devCtrl.SendCommand({int(args[2])}, {int(args[3])}, Clusters.{repr(req)})"
+-                err, res = self.devCtrl.ZCLSend(args[0], args[1], int(
+-                    args[2]), int(args[3]), int(args[4]), FormatZCLArguments(args[5:], command), blocking=True)
+-                if err != 0:
+-                    print("Failed to receive command response: {}".format(res))
+-                elif res is not None:
+-                    print("Received command status response:")
+-                    print(res)
+-                else:
+-                    print("Success, no status code is attached with response.")
+-            else:
+-                self.do_help("zcl")
+-        except exceptions.ChipStackException as ex:
+-            print("An exception occurred during process ZCL command:")
+-            print(str(ex))
+-        except Exception as ex:
+-            print("An exception occurred during processing input:")
+-            traceback.print_exc()
+-            print(str(ex))
+-
+-    def do_zclread(self, line):
+-        """
+-        To read ZCL attribute:
+-        zclread <cluster> <attribute> <nodeid> <endpoint> <groupid>
+-        """
+-        try:
+-            args = shlex.split(line)
+-            all_attrs = self.devCtrl.ZCLAttributeList()
+-            if len(args) == 1 and args[0] == '?':
+-                print('\n'.join(all_attrs.keys()))
+-            elif len(args) == 2 and args[0] == '?':
+-                if args[1] not in all_attrs:
+-                    raise exceptions.UnknownCluster(args[1])
+-                print('\n'.join(all_attrs.get(args[1]).keys()))
+-            elif len(args) == 5:
+-                if args[0] not in all_attrs:
+-                    raise exceptions.UnknownCluster(args[0])
+-                self.replHint = (f"await devCtrl.ReadAttribute({int(args[2])}, [({int(args[3])}, "
+-                                 f"Clusters.{args[0]}.Attributes.{args[1]})])")
+-                res = self.devCtrl.ZCLReadAttribute(args[0], args[1], int(
+-                    args[2]), int(args[3]), int(args[4]))
+-                if res is not None:
+-                    print(repr(res))
+-            else:
+-                self.do_help("zclread")
+-        except exceptions.ChipStackException as ex:
+-            print("An exception occurred during reading ZCL attribute:")
+-            print(str(ex))
+-        except Exception as ex:
+-            print("An exception occurred during processing input:")
+-            print(str(ex))
+-
+-    def do_zclwrite(self, line):
+-        """
+-        To write ZCL attribute:
+-        zclwrite <cluster> <attribute> <nodeid> <endpoint> <groupid> <value>
+-        """
+-        try:
+-            args = shlex.split(line)
+-            all_attrs = self.devCtrl.ZCLAttributeList()
+-            if len(args) == 1 and args[0] == '?':
+-                print('\n'.join(all_attrs.keys()))
+-            elif len(args) == 2 and args[0] == '?':
+-                if args[1] not in all_attrs:
+-                    raise exceptions.UnknownCluster(args[1])
+-                cluster_attrs = all_attrs.get(args[1], {})
+-                print('\n'.join(["{}: {}".format(key, cluster_attrs[key]["type"])
+-                                 for key in cluster_attrs.keys() if cluster_attrs[key].get("writable", False)]))
+-            elif len(args) == 6:
+-                if args[0] not in all_attrs:
+-                    raise exceptions.UnknownCluster(args[0])
+-                attribute_type = all_attrs.get(args[0], {}).get(
+-                    args[1], {}).get("type", None)
+-                self.replHint = (
+-                    f"await devCtrl.WriteAttribute({int(args[2])}, [({int(args[3])}, "
+-                    f"Clusters.{args[0]}.Attributes.{args[1]}(value={repr(ParseValueWithType(args[5], attribute_type))}))])")
+-                res = self.devCtrl.ZCLWriteAttribute(args[0], args[1], int(
+-                    args[2]), int(args[3]), int(args[4]), ParseValueWithType(args[5], attribute_type))
+-                print(repr(res))
+-            else:
+-                self.do_help("zclwrite")
+-        except exceptions.ChipStackException as ex:
+-            print("An exception occurred during writing ZCL attribute:")
+-            print(str(ex))
+-        except Exception as ex:
+-            print("An exception occurred during processing input:")
+-            print(str(ex))
+-
+-    def do_zclsubscribe(self, line):
+-        """
+-        To subscribe ZCL attribute reporting:
+-        zclsubscribe <cluster> <attribute> <nodeid> <endpoint> <minInterval> <maxInterval>
+-
+-        To shut down a subscription:
+-        zclsubscribe -shutdown <subscriptionId>
+-        """
+-        try:
+-            args = shlex.split(line)
+-            all_attrs = self.devCtrl.ZCLAttributeList()
+-            if len(args) == 1 and args[0] == '?':
+-                print('\n'.join(all_attrs.keys()))
+-            elif len(args) == 2 and args[0] == '?':
+-                if args[1] not in all_attrs:
+-                    raise exceptions.UnknownCluster(args[1])
+-                cluster_attrs = all_attrs.get(args[1], {})
+-                print('\n'.join([key for key in cluster_attrs.keys(
+-                ) if cluster_attrs[key].get("reportable", False)]))
+-            elif len(args) == 6:
+-                if args[0] not in all_attrs:
+-                    raise exceptions.UnknownCluster(args[0])
+-                res = self.devCtrl.ZCLSubscribeAttribute(args[0], args[1], int(
+-                    args[2]), int(args[3]), int(args[4]), int(args[5]))
+-                self.replHint = (f"sub = await devCtrl.ReadAttribute({int(args[2])}, [({int(args[3])}, "
+-                                 f"Clusters.{args[0]}.Attributes.{args[1]})], reportInterval=({int(args[4])}, {int(args[5])}))")
+-                print(res.GetAllValues())
+-                print(f"Subscription Established: {res}")
+-            elif len(args) == 2 and args[0] == '-shutdown':
+-                subscriptionId = int(args[1], base=0)
+-                self.replHint = "You can call sub.Shutdown() (sub is the return value of ReadAttribute() called before)"
+-                self.devCtrl.ZCLShutdownSubscription(subscriptionId)
+-            else:
+-                self.do_help("zclsubscribe")
+-        except exceptions.ChipStackException as ex:
+-            print("An exception occurred during configuring reporting of ZCL attribute:")
+-            print(str(ex))
+-        except Exception as ex:
+-            print("An exception occurred during processing input:")
+-            print(str(ex))
+-
+-    def do_setpairingwificredential(self, line):
+-        """
+-        set-pairing-wifi-credential ssid credentials
+-        """
+-        try:
+-            args = shlex.split(line)
+-            if len(args) < 2:
+-                print("Usage:")
+-                self.do_help("set-pairing-wifi-credential")
+-                return
+-            self.devCtrl.SetWiFiCredentials(
+-                args[0], args[1])
+-            self.replHint = f"devCtrl.SetWiFiCredentials({repr(args[0])}, {repr(args[1])})"
+-        except Exception as ex:
+-            print(str(ex))
+-            return
+-
+-    def do_setpairingthreadcredential(self, line):
+-        """
+-        set-pairing-thread-credential threadOperationalDataset
+-        """
+-        try:
+-            args = shlex.split(line)
+-            if len(args) < 1:
+-                print("Usage:")
+-                self.do_help("set-pairing-thread-credential")
+-                return
+-            self.replHint = f"devCtrl.SetThreadOperationalDataset(bytes.fromhex({repr(args[0])}))"
+-            self.devCtrl.SetThreadOperationalDataset(bytes.fromhex(args[0]))
+-        except Exception as ex:
+-            print(str(ex))
+-            return
+-
+-    def do_opencommissioningwindow(self, line):
+-        """
+-        open-commissioning-window <nodeid> [options]
+-
+-        Options:
+-          -t  Timeout (in seconds)
+-          -o  Option  [TokenWithRandomPIN = 1, TokenWithProvidedPIN = 2]
+-          -d  Discriminator Value
+-          -i  Iteration
+-
+-          This command is used by a current Administrator to instruct a Node to go into commissioning mode
+-        """
+-        try:
+-            arglist = shlex.split(line)
+-
+-            if len(arglist) <= 1:
+-                print("Usage:")
+-                self.do_help("open-commissioning-window")
+-                return
+-            parser = argparse.ArgumentParser()
+-            parser.add_argument(
+-                "-t", type=int, default=0, dest='timeout')
+-            parser.add_argument(
+-                "-o", type=int, default=1, dest='option')
+-            parser.add_argument(
+-                "-i", type=int, default=0, dest='iteration')
+-            parser.add_argument(
+-                "-d", type=int, default=0, dest='discriminator')
+-            args = parser.parse_args(arglist[1:])
+-
+-            if args.option < 1 or args.option > 2:
+-                print("Invalid option specified!")
+-                raise ValueError("Invalid option specified")
+-
+-            self.replHint = (f"devCtrl.OpenCommissioningWindow(nodeid={int(arglist[0])}, timeout={args.timeout}, "
+-                             f"iteration={args.iteration}, discriminator={args.discriminator}, option={args.option})")
+-
+-            self.devCtrl.OpenCommissioningWindow(
+-                int(arglist[0]), args.timeout, args.iteration, args.discriminator, args.option)
+-
+-        except exceptions.ChipStackException as ex:
+-            print(str(ex))
+-            return
+-        except Exception:
+-            self.do_help("open-commissioning-window")
+-            return
+-
+-    def do_getfabricid(self, line):
+-        """
+-          get-fabricid
+-
+-          Read the current Compressed Fabric Id of the controller device, return 0 if not available.
+-        """
+-        try:
+-            args = shlex.split(line)
+-
+-            if (len(args) > 0):
+-                print("Unexpected argument: " + args[1])
+-                return
+-
+-            compressed_fabricid = self.devCtrl.GetCompressedFabricId()
+-            raw_fabricid = self.devCtrl.fabricId
+-
+-            self.replHint = "devCtrl.GetCompressedFabricId(), devCtrl.fabricId"
+-        except exceptions.ChipStackException as ex:
+-            print("An exception occurred during reading FabricID:")
+-            print(str(ex))
+-            return
+-
+-        print("Get fabric ID complete")
+-
+-        print("Raw Fabric ID: 0x{:016x}".format(raw_fabricid)
+-              + " (" + str(raw_fabricid) + ")")
+-
+-        print("Compressed Fabric ID: 0x{:016x}".format(compressed_fabricid)
+-              + " (" + str(compressed_fabricid) + ")")
+-
+-    def do_history(self, line):
+-        """
+-        history
+-
+-        Show previously executed commands.
+-        """
+-
+-        try:
+-            import readline
+-
+-            h = readline.get_current_history_length()
+-            for n in range(1, h + 1):
+-                print(readline.get_history_item(n))
+-        except ImportError:
+-            pass
+-
+-    def do_h(self, line):
+-        self.do_history(line)
+-
+-    def do_exit(self, line):
+-        return True
+-
+-    def do_quit(self, line):
+-        return True
+-
+-    def do_q(self, line):
+-        return True
+-
+-    def do_EOF(self, line):
+-        print()
+-        return True
+-
+-    def emptyline(self):
+-        pass
+-
+-
+-def main():
+-    optParser = OptionParser()
+-    optParser.add_option(
+-        "-r",
+-        "--rendezvous-addr",
+-        action="store",
+-        dest="rendezvousAddr",
+-        help="Device rendezvous address",
+-        metavar="<ip-address>",
+-    )
+-    optParser.add_option(
+-        "-n",
+-        "--controller-nodeid",
+-        action="store",
+-        dest="controllerNodeId",
+-        default=1,
+-        type='int',
+-        help="Controller node ID",
+-        metavar="<nodeid>",
+-    )
+-
+-    if sys.platform.startswith("linux"):
+-        optParser.add_option(
+-            "-b",
+-            "--bluetooth-adapter",
+-            action="store",
+-            dest="bluetoothAdapter",
+-            default="hci0",
+-            type="str",
+-            help="Controller bluetooth adapter ID, use --no-ble to disable bluetooth functions.",
+-            metavar="<bluetooth-adapter>",
+-        )
+-        optParser.add_option(
+-            "--no-ble",
+-            action="store_true",
+-            dest="disableBluetooth",
+-            help="Disable bluetooth, calling BLE related feature with this flag results in undefined behavior.",
+-        )
+-    (options, remainingArgs) = optParser.parse_args(sys.argv[1:])
+-
+-    if len(remainingArgs) != 0:
+-        print("Unexpected argument: %s" % remainingArgs[0])
+-        sys.exit(-1)
+-
+-    adapterId = None
+-    if sys.platform.startswith("linux"):
+-        if options.disableBluetooth:
+-            adapterId = None
+-        elif not options.bluetoothAdapter.startswith("hci"):
+-            print(
+-                "Invalid bluetooth adapter: {}, adapter name looks like hci0, hci1 etc.")
+-            sys.exit(-1)
+-        else:
+-            try:
+-                adapterId = int(options.bluetoothAdapter[3:])
+-            except ValueError:
+-                print(
+-                    "Invalid bluetooth adapter: {}, adapter name looks like hci0, hci1 etc.")
+-                sys.exit(-1)
+-    native.Init(bluetoothAdapter=adapterId)
+-    try:
+-        devMgrCmd = DeviceMgrCmd(rendezvousAddr=options.rendezvousAddr,
+-                                 controllerNodeId=options.controllerNodeId, bluetoothAdapter=adapterId)
+-    except Exception as ex:
+-        print(ex)
+-        print("Failed to bringup CHIPDeviceController CLI")
+-        sys.exit(1)
+-
+-    print("Chip Device Controller Shell")
+-    if options.rendezvousAddr:
+-        print("Rendezvous address set to %s" % options.rendezvousAddr)
+-
+-    # Adapter ID will always be 0
+-    if adapterId != 0:
+-        print("Bluetooth adapter set to hci{}".format(adapterId))
+-    print()
+-
+-    try:
+-        devMgrCmd.cmdloop()
+-    except KeyboardInterrupt:
+-        print("\nQuitting")
+-
+-    sys.exit(0)
+-
+-
+-if __name__ == "__main__":
+-    print("""
+-    chip-device-ctrl will be deprecated and will be removed in the future. Please try chip-repl, which provides a lot of features.
+-
+-    - Multi-fabric support,
+-    - Better complex type support for sending commands,
+-    - Native command highlight,
+-    - Parallel commands with asyncio,
+-    - Writing complex logic inline.
+-
+-    You can still use chip-device-ctrl as usual for now, and you will learn how to do the same thing in chip-repl.
+-
+-    Feel free to file an issue if some features are not supported by chip-repl yet.
+-    """)
+-    main()
+diff --git a/src/controller/python/chip/ChipDeviceCtrl.py b/src/controller/python/chip/ChipDeviceCtrl.py
+index 4d14a42f18..1d1627c46d 100644
+--- a/src/controller/python/chip/ChipDeviceCtrl.py
++++ b/src/controller/python/chip/ChipDeviceCtrl.py
+@@ -50,12 +50,9 @@ from . import discovery
+ from .clusters import Attribute as ClusterAttribute
+ from .clusters import ClusterObjects as ClusterObjects
+ from .clusters import Command as ClusterCommand
+-from .clusters import Objects as GeneratedObjects
+ from .clusters.CHIPClusters import ChipClusters
+ from .crypto import p256keypair
+-from .exceptions import UnknownAttribute, UnknownCommand
+-from .interaction_model import InteractionModelError, SessionParameters, SessionParametersStruct
+-from .interaction_model import delegate as im
++from .interaction_model import SessionParameters, SessionParametersStruct
+ from .native import PyChipError
+ 
+ __all__ = ["ChipDeviceController", "CommissioningParameters"]
+@@ -1464,83 +1461,6 @@ class ChipDeviceControllerBase():
+         else:
+             return res.events
+ 
+-    def ZCLSend(self, cluster, command, nodeid, endpoint, groupid, args, blocking=False):
+-        ''' Wrapper over SendCommand that catches the exceptions
+-            Returns a tuple of (errorCode, CommandResponse)
+-        '''
+-        self.CheckIsActive()
+-
+-        req = None
+-        try:
+-            req = eval(
+-                f"GeneratedObjects.{cluster}.Commands.{command}")(**args)
+-        except BaseException:
+-            raise UnknownCommand(cluster, command)
+-        try:
+-            res = asyncio.run(self.SendCommand(nodeid, endpoint, req))
+-            logging.debug(f"CommandResponse {res}")
+-            return (0, res)
+-        except InteractionModelError as ex:
+-            return (int(ex.status), None)
+-
+-    def ZCLReadAttribute(self, cluster, attribute, nodeid, endpoint, groupid, blocking=True):
+-        ''' Wrapper over ReadAttribute for a single attribute
+-            Returns an AttributeReadResult
+-        '''
+-        self.CheckIsActive()
+-
+-        clusterType = getattr(GeneratedObjects, cluster)
+-
+-        try:
+-            attributeType = eval(
+-                f"GeneratedObjects.{cluster}.Attributes.{attribute}")
+-        except BaseException:
+-            raise UnknownAttribute(cluster, attribute)
+-
+-        result = asyncio.run(self.ReadAttribute(
+-            nodeid, [(endpoint, attributeType)]))
+-        path = ClusterAttribute.AttributePath.from_attribute(
+-            EndpointId=endpoint, Attribute=attributeType)
+-        return im.AttributeReadResult(path=im.AttributePath(nodeId=nodeid, endpointId=path.EndpointId, clusterId=path.ClusterId, attributeId=path.AttributeId),
+-                                      status=0, value=result[endpoint][clusterType][attributeType], dataVersion=result[endpoint][clusterType][ClusterAttribute.DataVersion])
+-
+-    def ZCLWriteAttribute(self, cluster: str, attribute: str, nodeid, endpoint, groupid, value, dataVersion=0, blocking=True):
+-        ''' Wrapper over WriteAttribute for a single attribute
+-            return PyChipError
+-        '''
+-        req = None
+-        try:
+-            req = eval(
+-                f"GeneratedObjects.{cluster}.Attributes.{attribute}")(value)
+-        except BaseException:
+-            raise UnknownAttribute(cluster, attribute)
+-
+-        return asyncio.run(self.WriteAttribute(nodeid, [(endpoint, req, dataVersion)]))
+-
+-    def ZCLSubscribeAttribute(self, cluster, attribute, nodeid, endpoint, minInterval, maxInterval, blocking=True,
+-                              keepSubscriptions=False, autoResubscribe=True):
+-        ''' Wrapper over ReadAttribute for a single attribute
+-            Returns a SubscriptionTransaction. See ReadAttribute for more information.
+-        '''
+-        self.CheckIsActive()
+-
+-        req = None
+-        try:
+-            req = eval(f"GeneratedObjects.{cluster}.Attributes.{attribute}")
+-        except BaseException:
+-            raise UnknownAttribute(cluster, attribute)
+-        return asyncio.run(self.ReadAttribute(nodeid, [(endpoint, req)], None, False, reportInterval=(minInterval, maxInterval),
+-                                              keepSubscriptions=keepSubscriptions, autoResubscribe=autoResubscribe))
+-
+-    def ZCLCommandList(self):
+-        self.CheckIsActive()
+-        return self._Cluster.ListClusterCommands()
+-
+-    def ZCLAttributeList(self):
+-        self.CheckIsActive()
+-
+-        return self._Cluster.ListClusterAttributes()
+-
+     def SetBlockingCB(self, blockingCB):
+         self.CheckIsActive()
+ 
+diff --git a/src/controller/python/chip/ChipReplStartup.py b/src/controller/python/chip/ChipReplStartup.py
+index a49638cb99..b75c77efcd 100644
+--- a/src/controller/python/chip/ChipReplStartup.py
++++ b/src/controller/python/chip/ChipReplStartup.py
+@@ -94,6 +94,8 @@ def main():
+         "-d", "--debug", help="Set default logging level to debug.", action="store_true")
+     parser.add_argument(
+         "-t", "--trust-store", help="Path to the PAA trust store.", action="store", default="./credentials/development/paa-root-certs")
++    parser.add_argument(
++        "-b", "--ble-adapter", help="Set the Bluetooth adapter index.", type=int, default=None)
+     args = parser.parse_args()
+ 
+     if not os.path.exists(args.trust_store):
+@@ -128,7 +130,7 @@ or run `os.chdir` to the root of your CHIP repository checkout.
+         # nothing we can do ... things will NOT work
+         return
+ 
+-    chip.native.Init()
++    chip.native.Init(bluetoothAdapter=args.ble_adapter)
+ 
+     global certificateAuthorityManager
+     global chipStack
+diff --git a/src/pybindings/pycontroller/build-chip-wheel.py b/src/pybindings/pycontroller/build-chip-wheel.py
+index a61b591d5c..61bdf373e8 100644
+--- a/src/pybindings/pycontroller/build-chip-wheel.py
++++ b/src/pybindings/pycontroller/build-chip-wheel.py
+@@ -60,7 +60,6 @@ packageName = args.package_name
+ chipPackageVer = args.build_number
+ 
+ installScripts = [
+-    # InstalledScriptInfo('chip-device-ctrl.py'),
+     # InstalledScriptInfo('chip-repl.py'),
+ ]
+ 
+-- 
+2.45.2
+

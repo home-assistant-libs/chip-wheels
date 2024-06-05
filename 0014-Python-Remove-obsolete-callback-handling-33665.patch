@@ -1,8 +1,7 @@
-From 20f1c72293991ad01043660b777e53be0992bae5 Mon Sep 17 00:00:00 2001
-Message-ID: <20f1c72293991ad01043660b777e53be0992bae5.1717003814.git.stefan@agner.ch>
+From 3997a66e9e436646a4652448bc72309d8afee2bf Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
-Date: Wed, 29 May 2024 19:05:43 +0200
-Subject: [PATCH] [Python] Remove obsolete callback handling
+Date: Thu, 30 May 2024 22:41:35 +0200
+Subject: [PATCH] [Python] Remove obsolete callback handling (#33665)
 
 The Call() function currently still has some callback handling code
 the completeEvent and callbackRes variables. These are only used when
@@ -16,15 +15,25 @@ However, when calling the SDK from multiple threads, then another Call()
 Might accidentally release a call to CallAsyncWithCompleteCallback()
 early.
 ---
- src/controller/python/chip/ChipStack.py | 19 -------------------
- 1 file changed, 19 deletions(-)
+ src/controller/python/chip/ChipStack.py | 22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
 diff --git a/src/controller/python/chip/ChipStack.py b/src/controller/python/chip/ChipStack.py
-index 6df7e41de4..a8f07941a2 100644
+index 35f9e24ef4..3a167bb6bc 100644
 --- a/src/controller/python/chip/ChipStack.py
 +++ b/src/controller/python/chip/ChipStack.py
-@@ -164,9 +164,6 @@ class AsyncCallableHandle:
-             return self._res
+@@ -32,8 +32,7 @@ import logging
+ import os
+ import sys
+ import time
+-from ctypes import (CFUNCTYPE, POINTER, Structure, c_bool, c_char_p, c_int64, c_uint8, c_uint16, c_uint32, c_ulong, c_void_p,
+-                    py_object, pythonapi)
++from ctypes import CFUNCTYPE, Structure, c_bool, c_char_p, c_int64, c_uint8, c_uint16, c_uint32, c_void_p, py_object, pythonapi
+ from threading import Condition, Event, Lock
+ 
+ import chip.native
+@@ -194,9 +193,6 @@ class AsyncioCallableHandle:
+         pythonapi.Py_DecRef(py_object(self))
  
  
 -_CompleteFunct = CFUNCTYPE(None, c_void_p, c_void_p)
@@ -33,7 +42,7 @@ index 6df7e41de4..a8f07941a2 100644
  _LogMessageFunct = CFUNCTYPE(
      None, c_int64, c_int64, c_char_p, c_uint8, c_char_p)
  _ChipThreadTaskRunnerFunct = CFUNCTYPE(None, py_object)
-@@ -241,21 +238,11 @@ class ChipStack(object):
+@@ -272,21 +268,11 @@ class ChipStack(object):
              self.logger.addHandler(logHandler)
              self.logger.setLevel(logging.DEBUG)
  
@@ -55,13 +64,14 @@ index 6df7e41de4..a8f07941a2 100644
          # set by other modules(BLE) that require service by thread while thread blocks.
          self.blockingCB = None
  
-@@ -357,14 +344,8 @@ class ChipStack(object):
+@@ -389,15 +375,9 @@ class ChipStack(object):
          This function is a wrapper of PostTaskOnChipThread, which includes some handling of application specific logics.
          Calling this function on CHIP on CHIP mainloop thread will cause deadlock.
          '''
 -        # throw error if op in progress
 -        self.callbackRes = None
 -        self.completeEvent.clear()
+         # TODO: Lock probably no longer necessary, see https://github.com/project-chip/connectedhomeip/issues/33321.
          with self.networkLock:
              res = self.PostTaskOnChipThread(callFunct).Wait(timeoutMs)
 -        self.completeEvent.set()
@@ -69,7 +79,7 @@ index 6df7e41de4..a8f07941a2 100644
 -            return self.callbackRes
          return res
  
-     def CallAsync(self, callFunct):
+     async def CallAsync(self, callFunct, timeoutMs: int = None):
 -- 
-2.45.1
+2.45.2
 

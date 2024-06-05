@@ -1,9 +1,8 @@
-From dce7020f3a9e542e6afbc59f131c77210df5f7db Mon Sep 17 00:00:00 2001
-Message-ID: <dce7020f3a9e542e6afbc59f131c77210df5f7db.1714067071.git.stefan@agner.ch>
+From 113143a945bbe5663b78b59b05d6b00670d79292 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 25 Apr 2024 15:19:17 +0200
-Subject: [PATCH] [Python] Fix OnRead[Event|Attribute]DataCallback for Arm64
- Apple Patform devices
+Subject: [PATCH] Fix OnRead[Event|Attribute]DataCallback for Arm64 Apple
+ Patform devices
 
 On M1/Arm64 macOS systems, the OnReadEventDataCallback often returned
 an invalid status, e.g.:
@@ -50,5 +49,5 @@ index e31f3431b8..b73b4a49b4 100644
          // When the apData is nullptr, means we did not receive a valid event data from server, status will be some error
          // status.
 -- 
-2.44.0
+2.45.2
 

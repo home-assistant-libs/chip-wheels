@@ -1,0 +1,63 @@
+From 025bdb7a1e9b9669ab091b96f9ac0adefe3a53dd Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Wed, 5 Jun 2024 16:06:15 +0200
+Subject: [PATCH] [Python] Drop network lock (#33720)
+
+The network lock is not needed in the Python controller, as all calls
+to the SDK are made by posting to the Matter SDK event loop through
+ScheduleWork(), hence are guaranteed to be serialized.
+
+From how I understand ScheduleWork() works, it pushes the work to the
+event loop through PostEvent() which at least on POSIX is using the
+thread safe device queue (see GenericPlatformManagerImpl_POSIX.cpp).
+---
+ src/controller/python/chip/ChipStack.py | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/src/controller/python/chip/ChipStack.py b/src/controller/python/chip/ChipStack.py
+index 06afff3ef3..b47c463982 100644
+--- a/src/controller/python/chip/ChipStack.py
++++ b/src/controller/python/chip/ChipStack.py
+@@ -144,8 +144,6 @@ class ChipStack(object):
+     def __init__(self, persistentStoragePath: str, enableServerInteractions=True):
+         builtins.enableDebugMode = False
+ 
+-        # TODO: Probably no longer necessary, see https://github.com/project-chip/connectedhomeip/issues/33321.
+-        self.networkLock = Lock()
+         self.completeEvent = Event()
+         self.commissioningCompleteEvent = Event()
+         self._ChipStackLib = None
+@@ -212,7 +210,6 @@ class ChipStack(object):
+         # #20437 tracks consolidating these.
+         #
+         self._ChipStackLib.pychip_CommonStackShutdown()
+-        self.networkLock = None
+         self.completeEvent = None
+         self._ChipStackLib = None
+         self._chipDLLPath = None
+@@ -226,10 +223,7 @@ class ChipStack(object):
+         This function is a wrapper of PostTaskOnChipThread, which includes some handling of application specific logics.
+         Calling this function on CHIP on CHIP mainloop thread will cause deadlock.
+         '''
+-        # TODO: Lock probably no longer necessary, see https://github.com/project-chip/connectedhomeip/issues/33321.
+-        with self.networkLock:
+-            res = self.PostTaskOnChipThread(callFunct).Wait(timeoutMs)
+-        return res
++        return self.PostTaskOnChipThread(callFunct).Wait(timeoutMs)
+ 
+     async def CallAsync(self, callFunct, timeoutMs: int = None):
+         '''Run a Python function on CHIP stack, and wait for the response.
+@@ -256,9 +250,7 @@ class ChipStack(object):
+         # throw error if op in progress
+         self.callbackRes = None
+         self.completeEvent.clear()
+-        # TODO: Lock probably no longer necessary, see https://github.com/project-chip/connectedhomeip/issues/33321.
+-        with self.networkLock:
+-            res = self.PostTaskOnChipThread(callFunct).Wait()
++        res = self.PostTaskOnChipThread(callFunct).Wait()
+ 
+         if not res.is_success:
+             self.completeEvent.set()
+-- 
+2.45.2
+

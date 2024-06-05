@@ -1,8 +1,7 @@
-From 9bc05af1e1ef2ec93336dc0eecba16b6802b6fb1 Mon Sep 17 00:00:00 2001
-Message-ID: <9bc05af1e1ef2ec93336dc0eecba16b6802b6fb1.1716466458.git.stefan@agner.ch>
+From 4fe4daf7f165dc007ab6092bee2adef67650d129 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 23 May 2024 12:48:54 +0200
-Subject: [PATCH] [Python] Add raw attribute callback
+Subject: [PATCH] Add raw attribute callback
 
 Add new subscription callback which uses raw AttributePath as paths
 of changed attributes. This allows to subscribe to custom clusters,
@@ -102,5 +101,5 @@ index 9e46eed469..ce522bf452 100644
              # Clear it out once we've notified of all changes in this transaction.
          self._changedPathSet = set()
 -- 
-2.45.1
+2.45.2
 
