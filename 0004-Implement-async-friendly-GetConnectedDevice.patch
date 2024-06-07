@@ -1,7 +1,7 @@
-From f9fc067ad51d3989a2045f19fc5641971ce1ee20 Mon Sep 17 00:00:00 2001
+From 7ce75765081aeebef5f3adc397dff4db256348eb Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Wed, 27 Mar 2024 22:13:19 +0100
-Subject: [PATCH] [Python] Implement async friendly GetConnectedDevice
+Subject: [PATCH] Implement async friendly GetConnectedDevice
 
 Currently GetConnectedDeviceSync() is blocking e.g. when a new session
 needs to be created. This is not asyncio friendly as it blocks the
@@ -129,5 +129,5 @@ index 369260787d..b3d0aa2d7f 100644
              v) for v in attributes] if attributes else None
          clusterDataVersionFilters = [self._parseDataVersionFilterTuple(
 -- 
-2.44.0
+2.45.2
 

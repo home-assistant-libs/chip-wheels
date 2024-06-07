@@ -1,5 +1,4 @@
-From d06671d9031156ce3b29e06d7edb344d8f6ee0d6 Mon Sep 17 00:00:00 2001
-Message-ID: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
+From bcd84a21c67a681fcaba43118d9d9bb7ed618b55 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
@@ -9,7 +8,7 @@ Subject: [PATCH] Support custom platform tag
  1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index 4b84c63d5f..b01dafbc30 100644
+index 5fc2212098..caa33c3a40 100644
 --- a/src/controller/python/BUILD.gn
 +++ b/src/controller/python/BUILD.gn
 @@ -35,6 +35,15 @@ declare_args() {
@@ -28,7 +27,7 @@ index 4b84c63d5f..b01dafbc30 100644
  }
  
  shared_library("ChipDeviceCtrl") {
-@@ -340,16 +349,7 @@ chip_python_wheel_action("chip-core") {
+@@ -344,16 +353,7 @@ chip_python_wheel_action("chip-core") {
      cpu_tag = current_cpu
    }
  
@@ -47,5 +46,5 @@ index 4b84c63d5f..b01dafbc30 100644
    tags = "cp37-abi3-" + py_platform_tag
  
 -- 
-2.42.0
+2.45.2
 

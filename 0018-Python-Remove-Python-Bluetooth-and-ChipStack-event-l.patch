@@ -1,0 +1,95 @@
+From a4fb58131d9023ad3a3ec01d44c5ae87946d6b59 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Thu, 6 Jun 2024 17:11:34 +0200
+Subject: [PATCH] [Python] Remove Python Bluetooth and ChipStack event loop
+ integration (#33775)
+
+The Python Bluetooth implementation for Linux (`BluezManager` in
+ChipBluezMgr.py) and macOS (`CoreBluetoothManager` in
+ChipCoreBluetoothMgr.py) integrate with ChipStack to pump their event
+loops on long running operations such as commissioning (through
+`CallAsyncWithCompleteCallback()`). From what I can tell, the Python
+Bluetooth stack is only used for some mbed integration tests.
+Specifically through `scan_chip_ble_devices()`
+in src/test_driver/mbed/integration_tests/common/utils.py. This
+operation doesn't need the event loop integration.
+
+So as a first step, this PR simply breaks this tie and removes the
+event loop integration with the Device ChipStack/ChipDeviceController.
+---
+ src/controller/python/chip/ChipBluezMgr.py         | 1 -
+ src/controller/python/chip/ChipCoreBluetoothMgr.py | 2 --
+ src/controller/python/chip/ChipDeviceCtrl.py       | 5 -----
+ src/controller/python/chip/ChipStack.py            | 8 +-------
+ 4 files changed, 1 insertion(+), 15 deletions(-)
+
+diff --git a/src/controller/python/chip/ChipBluezMgr.py b/src/controller/python/chip/ChipBluezMgr.py
+index e480750b60..bacf383710 100644
+--- a/src/controller/python/chip/ChipBluezMgr.py
++++ b/src/controller/python/chip/ChipBluezMgr.py
+@@ -807,7 +807,6 @@ class BluezManager(ChipBleBase):
+         self.rx = None
+         self.setInputHook(self.readlineCB)
+         self.devMgr = devMgr
+-        self.devMgr.SetBlockingCB(self.devMgrCB)
+ 
+     def __del__(self):
+         self.disconnect()
+diff --git a/src/controller/python/chip/ChipCoreBluetoothMgr.py b/src/controller/python/chip/ChipCoreBluetoothMgr.py
+index 3f792a5a4d..4a65f1e237 100644
+--- a/src/controller/python/chip/ChipCoreBluetoothMgr.py
++++ b/src/controller/python/chip/ChipCoreBluetoothMgr.py
+@@ -184,8 +184,6 @@ class CoreBluetoothManager(ChipBleBase):
+     def __del__(self):
+         self.disconnect()
+         self.setInputHook(self.orig_input_hook)
+-        self.devCtrl.SetBlockingCB(None)
+-        self.devCtrl.SetBleEventCB(None)
+ 
+     def devMgrCB(self):
+         """A callback used by ChipDeviceCtrl.py to drive the OSX runloop while the
+diff --git a/src/controller/python/chip/ChipDeviceCtrl.py b/src/controller/python/chip/ChipDeviceCtrl.py
+index 1d1627c46d..acbbc88b3e 100644
+--- a/src/controller/python/chip/ChipDeviceCtrl.py
++++ b/src/controller/python/chip/ChipDeviceCtrl.py
+@@ -1461,11 +1461,6 @@ class ChipDeviceControllerBase():
+         else:
+             return res.events
+ 
+-    def SetBlockingCB(self, blockingCB):
+-        self.CheckIsActive()
+-
+-        self._ChipStack.blockingCB = blockingCB
+-
+     def SetIpk(self, ipk: bytes):
+         self._ChipStack.Call(
+             lambda: self._dmLib.pychip_DeviceController_SetIpk(self.devCtrl, ipk, len(ipk))
+diff --git a/src/controller/python/chip/ChipStack.py b/src/controller/python/chip/ChipStack.py
+index b47c463982..5fd0601ba2 100644
+--- a/src/controller/python/chip/ChipStack.py
++++ b/src/controller/python/chip/ChipStack.py
+@@ -165,8 +165,6 @@ class ChipStack(object):
+             callback()
+ 
+         self.cbHandleChipThreadRun = HandleChipThreadRun
+-        # set by other modules(BLE) that require service by thread while thread blocks.
+-        self.blockingCB = None
+ 
+         #
+         # Storage has to be initialized BEFORE initializing the stack, since the latter
+@@ -255,11 +253,7 @@ class ChipStack(object):
+         if not res.is_success:
+             self.completeEvent.set()
+             raise res.to_exception()
+-        while not self.completeEvent.isSet():
+-            if self.blockingCB:
+-                self.blockingCB()
+-
+-            self.completeEvent.wait(0.05)
++        self.completeEvent.wait()
+         if isinstance(self.callbackRes, ChipStackException):
+             raise self.callbackRes
+         return self.callbackRes
+-- 
+2.45.2
+

@@ -1,4 +1,4 @@
-From 3c551b7a706428d2fde77df0bc93d81bb37a2022 Mon Sep 17 00:00:00 2001
+From c1536db9448763f2e45b3aeef34f30cbfb41889e Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 18 Apr 2024 21:46:59 +0200
 Subject: [PATCH] Enable node ID logging in exchanges
@@ -22,5 +22,5 @@ index 558e0ee08e..5a3f5facb7 100644
  
  /**
 -- 
-2.44.0
+2.45.2
 
