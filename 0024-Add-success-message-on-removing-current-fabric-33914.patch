@@ -1,0 +1,31 @@
+From 5ec1d9c49d505d5e462f6c935b7f325cbf632e8f Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Fri, 14 Jun 2024 01:34:21 +0200
+Subject: [PATCH] Add success message on removing current fabric (#33914)
+
+Readd a message with progress-level when removing the current fabric
+succeeded.
+---
+ src/controller/CurrentFabricRemover.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/controller/CurrentFabricRemover.cpp b/src/controller/CurrentFabricRemover.cpp
+index 899860a028..167fea0bb3 100644
+--- a/src/controller/CurrentFabricRemover.cpp
++++ b/src/controller/CurrentFabricRemover.cpp
+@@ -145,7 +145,11 @@ void CurrentFabricRemover::OnCommandFailure(void * context, CHIP_ERROR err)
+ 
+ void CurrentFabricRemover::FinishRemoveCurrentFabric(void * context, CHIP_ERROR err)
+ {
+-    if (err != CHIP_NO_ERROR)
++    if (err == CHIP_NO_ERROR)
++    {
++        ChipLogProgress(Controller, "Remove Current Fabric succeeded.");
++    }
++    else
+     {
+         ChipLogError(Controller, "Remove Current Fabric Failed : %" CHIP_ERROR_FORMAT, err.Format());
+     }
+-- 
+2.45.2
+
