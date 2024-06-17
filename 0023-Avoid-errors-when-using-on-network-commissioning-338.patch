@@ -1,0 +1,52 @@
+From 005887af17aa03eb655cee10871e16ff65ceb34e Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Thu, 13 Jun 2024 22:29:36 +0200
+Subject: [PATCH] Avoid errors when using on-network commissioning (#33880)
+
+When on network commissioning is used from Python we currently don't
+stop discovery even though we already found a device. Future devices
+found won't be processed, so it is fine to stop discovery of
+commissionable nodes at this point.
+
+Also avoid "Unknown filter type; all matches will fail" errors in the
+log: If the filter type is set to None, it wasn't the SetUpCodePairer
+which set up the discovery. Avoid printing errors in this case.
+
+A potential alternative to this would be to skip notifying the
+SetUpCodePairer in DeviceCommissioner::OnNodeDiscovered in this case.
+---
+ src/controller/SetUpCodePairer.cpp                             | 3 +++
+ ...ipDeviceController-ScriptPairingDeviceDiscoveryDelegate.cpp | 3 +++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/src/controller/SetUpCodePairer.cpp b/src/controller/SetUpCodePairer.cpp
+index db09d91fd7..3a8997703d 100644
+--- a/src/controller/SetUpCodePairer.cpp
++++ b/src/controller/SetUpCodePairer.cpp
+@@ -363,6 +363,9 @@ bool SetUpCodePairer::NodeMatchesCurrentFilter(const Dnssd::DiscoveredNodeData &
+     case Dnssd::DiscoveryFilterType::kLongDiscriminator:
+         discriminatorMatches = (nodeData.commissionData.longDiscriminator == mCurrentFilter.code);
+         break;
++    case Dnssd::DiscoveryFilterType::kNone:
++        ChipLogDetail(Controller, "Filter type none; all matches will fail");
++        return false;
+     default:
+         ChipLogError(Controller, "Unknown filter type; all matches will fail");
+         return false;
+diff --git a/src/controller/python/ChipDeviceController-ScriptPairingDeviceDiscoveryDelegate.cpp b/src/controller/python/ChipDeviceController-ScriptPairingDeviceDiscoveryDelegate.cpp
+index 850ec208ac..d211ac9058 100644
+--- a/src/controller/python/ChipDeviceController-ScriptPairingDeviceDiscoveryDelegate.cpp
++++ b/src/controller/python/ChipDeviceController-ScriptPairingDeviceDiscoveryDelegate.cpp
+@@ -32,6 +32,9 @@ void ScriptPairingDeviceDiscoveryDelegate::OnDiscoveredDevice(const Dnssd::Disco
+     nodeData.resolutionData.ipAddress[0].ToString(buf);
+     ChipLogProgress(chipTool, "Discovered Device: %s:%u", buf, port);
+ 
++    // Stop active discovery.
++    mActiveDeviceCommissioner->StopCommissionableDiscovery();
++
+     // Cancel discovery timer.
+     chip::DeviceLayer::SystemLayer().CancelTimer(OnDiscoveredTimeout, this);
+ 
+-- 
+2.45.2
+
