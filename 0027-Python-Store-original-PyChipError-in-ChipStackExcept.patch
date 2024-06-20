@@ -1,0 +1,471 @@
+From d9231b499271843b4501ea84bfa56a5b3ac9a1b5 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Tue, 18 Jun 2024 14:45:11 +0200
+Subject: [PATCH] [Python] Store original PyChipError in ChipStackException
+ (#33954)
+
+* [Python] Drop unused ErrorToException function
+
+Also remove the now unused pychip_Stack_ErrorToString function. This
+is handled in pychip_FormatError today.
+
+* [Python] Cleanup PyChipError return values
+
+Use PyChipError return value where PyChipErrors are actually returned.
+This then also allows us to use the typical .raise_on_error() pattern.
+
+* [Python] Store original PyChipError in ChipStackException
+
+This change stores the original PyChipError in ChipStackException so
+that details of the original error code can still be retrieved. This
+is interesting to use the properties returning processed information
+about the original error code. It also preserves the line and code
+file which can be helpful.
+
+* [Python] Fix Command API argument type errors
+
+NativeLibraryHandleMethodArguments correctly setting the arguments
+uncovered some incorrectly set arguments.
+
+* [Python] Use to_exception() to convert PyChipError to ChipStackError
+
+* [Python] Fix Cert API argument type errors
+
+NativeLibraryHandleMethodArguments correctly setting the argument
+types causes argument type errors:
+ctypes.ArgumentError: argument 1: TypeError: expected LP_c_ubyte instance instead of bytes
+
+We can safely cast bytes as the native side marks it const.
+---
+ .../ChipDeviceController-ScriptBinding.cpp    | 11 ------
+ src/controller/python/chip/ChipDeviceCtrl.py  | 13 +++----
+ src/controller/python/chip/ChipStack.py       | 30 ---------------
+ .../python/chip/clusters/Attribute.py         | 12 +++---
+ .../python/chip/clusters/Command.py           |  4 +-
+ .../python/chip/credentials/cert.py           |  8 +++-
+ .../python/chip/discovery/__init__.py         |  3 +-
+ .../python/chip/exceptions/__init__.py        | 25 ++++++++++--
+ .../python/chip/interaction_model/delegate.py |  8 ++--
+ src/controller/python/chip/native/__init__.py |  4 +-
+ .../chip/setup_payload/setup_payload.py       | 38 +++++++------------
+ 11 files changed, 61 insertions(+), 95 deletions(-)
+
+diff --git a/src/controller/python/ChipDeviceController-ScriptBinding.cpp b/src/controller/python/ChipDeviceController-ScriptBinding.cpp
+index 4a48434411..a2ab01734b 100644
+--- a/src/controller/python/ChipDeviceController-ScriptBinding.cpp
++++ b/src/controller/python/ChipDeviceController-ScriptBinding.cpp
+@@ -198,7 +198,6 @@ pychip_ScriptDevicePairingDelegate_SetExpectingPairingComplete(chip::Controller:
+ // BLE
+ PyChipError pychip_DeviceCommissioner_CloseBleConnection(chip::Controller::DeviceCommissioner * devCtrl);
+ 
+-const char * pychip_Stack_ErrorToString(ChipError::StorageType err);
+ const char * pychip_Stack_StatusReportToString(uint32_t profileId, uint16_t statusCode);
+ 
+ PyChipError pychip_GetConnectedDeviceByNodeId(chip::Controller::DeviceCommissioner * devCtrl, chip::NodeId nodeId,
+@@ -336,11 +335,6 @@ PyChipError pychip_DeviceController_GetNodeId(chip::Controller::DeviceCommission
+     return ToPyChipError(CHIP_NO_ERROR);
+ }
+ 
+-const char * pychip_DeviceController_ErrorToString(ChipError::StorageType err)
+-{
+-    return chip::ErrorStr(CHIP_ERROR(err));
+-}
+-
+ const char * pychip_DeviceController_StatusReportToString(uint32_t profileId, uint16_t statusCode)
+ {
+     // return chip::StatusReportStr(profileId, statusCode);
+@@ -690,11 +684,6 @@ pychip_ScriptDevicePairingDelegate_SetExpectingPairingComplete(chip::Controller:
+     return ToPyChipError(CHIP_NO_ERROR);
+ }
+ 
+-const char * pychip_Stack_ErrorToString(ChipError::StorageType err)
+-{
+-    return chip::ErrorStr(CHIP_ERROR(err));
+-}
+-
+ const char * pychip_Stack_StatusReportToString(uint32_t profileId, uint16_t statusCode)
+ {
+     // return chip::StatusReportStr(profileId, statusCode);
+diff --git a/src/controller/python/chip/ChipDeviceCtrl.py b/src/controller/python/chip/ChipDeviceCtrl.py
+index 3cb7e67b7a..3af0facfa5 100644
+--- a/src/controller/python/chip/ChipDeviceCtrl.py
++++ b/src/controller/python/chip/ChipDeviceCtrl.py
+@@ -882,12 +882,8 @@ class ChipDeviceControllerBase():
+         sessionParametersStruct = SessionParametersStruct.parse(b'\x00' * SessionParametersStruct.sizeof())
+         sessionParametersByteArray = SessionParametersStruct.build(sessionParametersStruct)
+         device = self.GetConnectedDeviceSync(nodeid)
+-        res = self._ChipStack.Call(lambda: self._dmLib.pychip_DeviceProxy_GetRemoteSessionParameters(
+-            device.deviceProxy, ctypes.c_char_p(sessionParametersByteArray)))
+-
+-        # 0 is CHIP_NO_ERROR
+-        if res != 0:
+-            return None
++        self._ChipStack.Call(lambda: self._dmLib.pychip_DeviceProxy_GetRemoteSessionParameters(
++            device.deviceProxy, ctypes.c_char_p(sessionParametersByteArray))).raise_on_error()
+ 
+         sessionParametersStruct = SessionParametersStruct.parse(sessionParametersByteArray)
+         return SessionParameters(
+@@ -899,8 +895,6 @@ class ChipDeviceControllerBase():
+             specficiationVersion=sessionParametersStruct.SpecificationVersion if sessionParametersStruct.SpecificationVersion != 0 else None,
+             maxPathsPerInvoke=sessionParametersStruct.MaxPathsPerInvoke)
+ 
+-        return res
+-
+     async def TestOnlySendBatchCommands(self, nodeid: int, commands: typing.List[ClusterCommand.InvokeRequestInfo],
+                                         timedRequestTimeoutMs: typing.Optional[int] = None,
+                                         interactionTimeoutMs: typing.Optional[int] = None, busyWaitMs: typing.Optional[int] = None,
+@@ -1660,6 +1654,9 @@ class ChipDeviceControllerBase():
+             self._dmLib.pychip_DeviceController_SetIpk.argtypes = [c_void_p, POINTER(c_char), c_size_t]
+             self._dmLib.pychip_DeviceController_SetIpk.restype = PyChipError
+ 
++            self._dmLib.pychip_DeviceProxy_GetRemoteSessionParameters.restype = PyChipError
++            self._dmLib.pychip_DeviceProxy_GetRemoteSessionParameters.argtypes = [c_void_p, c_char_p]
++
+ 
+ class ChipDeviceController(ChipDeviceControllerBase):
+     ''' The ChipDeviceCommissioner binding, named as ChipDeviceController
+diff --git a/src/controller/python/chip/ChipStack.py b/src/controller/python/chip/ChipStack.py
+index 4f19776664..dc4efc223f 100644
+--- a/src/controller/python/chip/ChipStack.py
++++ b/src/controller/python/chip/ChipStack.py
+@@ -35,7 +35,6 @@ from threading import Condition, Lock
+ import chip.native
+ from chip.native import PyChipError
+ 
+-from .ChipUtility import ChipUtility
+ from .clusters import Attribute as ClusterAttribute
+ from .clusters import Command as ClusterCommand
+ from .exceptions import ChipStackError, ChipStackException, DeviceError
+@@ -247,33 +246,6 @@ class ChipStack(object):
+             raise res.to_exception()
+         return callObj
+ 
+-    def ErrorToException(self, err, devStatusPtr=None):
+-        if err == 0x2C and devStatusPtr:
+-            devStatus = devStatusPtr.contents
+-            msg = ChipUtility.CStringToString(
+-                (
+-                    self._ChipStackLib.pychip_Stack_StatusReportToString(
+-                        devStatus.ProfileId, devStatus.StatusCode
+-                    )
+-                )
+-            )
+-            sysErrorCode = (
+-                devStatus.SysErrorCode if (
+-                    devStatus.SysErrorCode != 0) else None
+-            )
+-            if sysErrorCode is not None:
+-                msg = msg + " (system err %d)" % (sysErrorCode)
+-            return DeviceError(
+-                devStatus.ProfileId, devStatus.StatusCode, sysErrorCode, msg
+-            )
+-        else:
+-            return ChipStackError(
+-                err,
+-                ChipUtility.CStringToString(
+-                    (self._ChipStackLib.pychip_Stack_ErrorToString(err))
+-                ),
+-            )
+-
+     def LocateChipDLL(self):
+         self._loadLib()
+         return self._chipDLLPath
+@@ -302,8 +274,6 @@ class ChipStack(object):
+                 c_uint16,
+             ]
+             self._ChipStackLib.pychip_Stack_StatusReportToString.restype = c_char_p
+-            self._ChipStackLib.pychip_Stack_ErrorToString.argtypes = [c_uint32]
+-            self._ChipStackLib.pychip_Stack_ErrorToString.restype = c_char_p
+ 
+             self._ChipStackLib.pychip_DeviceController_PostTaskOnChipThread.argtypes = [
+                 _ChipThreadTaskRunnerFunct, py_object]
+diff --git a/src/controller/python/chip/clusters/Attribute.py b/src/controller/python/chip/clusters/Attribute.py
+index 838936e83b..16db825c12 100644
+--- a/src/controller/python/chip/clusters/Attribute.py
++++ b/src/controller/python/chip/clusters/Attribute.py
+@@ -674,7 +674,7 @@ class AsyncReadTransaction:
+         self._changedPathSet = set()
+         self._pReadClient = None
+         self._pReadCallback = None
+-        self._resultError = None
++        self._resultError: Optional[PyChipError] = None
+ 
+     def SetClientObjPointers(self, pReadClient, pReadCallback):
+         self._pReadClient = pReadClient
+@@ -741,7 +741,7 @@ class AsyncReadTransaction:
+             logging.exception(ex)
+ 
+     def handleError(self, chipError: PyChipError):
+-        self._resultError = chipError.code
++        self._resultError = chipError
+ 
+     def _handleSubscriptionEstablished(self, subscriptionId):
+         if not self._future.done():
+@@ -805,11 +805,11 @@ class AsyncReadTransaction:
+         # move on, possibly invalidating the provided _event_loop.
+         #
+         if not self._future.done():
+-            if self._resultError:
++            if self._resultError is not None:
+                 if self._subscription_handler:
+-                    self._subscription_handler.OnErrorCb(self._resultError, self._subscription_handler)
++                    self._subscription_handler.OnErrorCb(self._resultError.code, self._subscription_handler)
+                 else:
+-                    self._future.set_exception(chip.exceptions.ChipStackError(self._resultError))
++                    self._future.set_exception(self._resultError.to_exception())
+             else:
+                 self._future.set_result(AsyncReadTransaction.ReadResponse(
+                     attributes=self._cache.attributeCache, events=self._events, tlvAttributes=self._cache.attributeTLVCache))
+@@ -837,7 +837,7 @@ class AsyncWriteTransaction:
+         self._event_loop = eventLoop
+         self._future = future
+         self._resultData = []
+-        self._resultError = None
++        self._resultError: Optional[PyChipError] = None
+ 
+     def handleResponse(self, path: AttributePath, status: int):
+         try:
+diff --git a/src/controller/python/chip/clusters/Command.py b/src/controller/python/chip/clusters/Command.py
+index 6ef25cb211..93951338f9 100644
+--- a/src/controller/python/chip/clusters/Command.py
++++ b/src/controller/python/chip/clusters/Command.py
+@@ -467,13 +467,13 @@ def Init():
+         setter = chip.native.NativeLibraryHandleMethodArguments(handle)
+ 
+         setter.Set('pychip_CommandSender_SendCommand',
+-                   PyChipError, [py_object, c_void_p, c_uint16, c_uint32, c_uint32, c_char_p, c_size_t, c_uint16, c_bool])
++                   PyChipError, [py_object, c_void_p, c_uint16, c_uint16, c_uint32, c_uint32, c_char_p, c_size_t, c_uint16, c_uint16, c_bool])
+         setter.Set('pychip_CommandSender_SendBatchCommands',
+                    PyChipError, [py_object, c_void_p, c_uint16, c_uint16, c_uint16, c_bool, POINTER(PyInvokeRequestData), c_size_t])
+         setter.Set('pychip_CommandSender_TestOnlySendBatchCommands',
+                    PyChipError, [py_object, c_void_p, c_uint16, c_uint16, c_uint16, c_bool, TestOnlyPyBatchCommandsOverrides, POINTER(PyInvokeRequestData), c_size_t])
+         setter.Set('pychip_CommandSender_TestOnlySendCommandTimedRequestNoTimedInvoke',
+-                   PyChipError, [py_object, c_void_p, c_uint32, c_uint32, c_char_p, c_size_t, c_uint16, c_bool])
++                   PyChipError, [py_object, c_void_p, c_uint16, c_uint32, c_uint32, c_char_p, c_size_t, c_uint16, c_uint16, c_bool])
+         setter.Set('pychip_CommandSender_SendGroupCommand',
+                    PyChipError, [c_uint16, c_void_p, c_uint32, c_uint32, c_char_p, c_size_t, c_uint16])
+         setter.Set('pychip_CommandSender_InitCallbacks', None, [
+diff --git a/src/controller/python/chip/credentials/cert.py b/src/controller/python/chip/credentials/cert.py
+index 786c1a4231..df0b28207d 100644
+--- a/src/controller/python/chip/credentials/cert.py
++++ b/src/controller/python/chip/credentials/cert.py
+@@ -35,8 +35,10 @@ def convert_x509_cert_to_chip_cert(x509Cert: bytes) -> bytes:
+     """Converts a x509 certificate to CHIP Certificate."""
+     output_buffer = (ctypes.c_uint8 * 1024)()
+     output_size = ctypes.c_size_t(1024)
++    ptr_type = ctypes.POINTER(ctypes.c_uint8)
+ 
+-    _handle().pychip_ConvertX509CertToChipCert(x509Cert, len(x509Cert), output_buffer, ctypes.byref(output_size)).raise_on_error()
++    _handle().pychip_ConvertX509CertToChipCert(ctypes.cast(x509Cert, ptr_type), len(x509Cert),
++                                               ctypes.cast(output_buffer, ptr_type), ctypes.byref(output_size)).raise_on_error()
+ 
+     return bytes(output_buffer)[:output_size.value]
+ 
+@@ -45,7 +47,9 @@ def convert_chip_cert_to_x509_cert(chipCert: bytes) -> bytes:
+     """Converts a x509 certificate to CHIP Certificate."""
+     output_buffer = (ctypes.c_byte * 1024)()
+     output_size = ctypes.c_size_t(1024)
++    ptr_type = ctypes.POINTER(ctypes.c_uint8)
+ 
+-    _handle().pychip_ConvertChipCertToX509Cert(chipCert, len(chipCert), output_buffer, ctypes.byref(output_size)).raise_on_error()
++    _handle().pychip_ConvertChipCertToX509Cert(ctypes.cast(chipCert, ptr_type), len(chipCert),
++                                               ctypes.cast(output_buffer, ptr_type), ctypes.byref(output_size)).raise_on_error()
+ 
+     return bytes(output_buffer)[:output_size.value]
+diff --git a/src/controller/python/chip/discovery/__init__.py b/src/controller/python/chip/discovery/__init__.py
+index c400d97542..a25fb49000 100644
+--- a/src/controller/python/chip/discovery/__init__.py
++++ b/src/controller/python/chip/discovery/__init__.py
+@@ -236,8 +236,7 @@ def FindAddressAsync(fabricid: int, nodeid: int, callback, timeout_ms=1000):
+     )
+ 
+     res = _GetDiscoveryLibraryHandle().pychip_discovery_resolve(fabricid, nodeid)
+-    if res != 0:
+-        raise Exception("Failed to start node resolution")
++    res.raise_on_error()
+ 
+ 
+ class _SyncAddressFinder:
+diff --git a/src/controller/python/chip/exceptions/__init__.py b/src/controller/python/chip/exceptions/__init__.py
+index 6b1969f1ef..c7f692e928 100644
+--- a/src/controller/python/chip/exceptions/__init__.py
++++ b/src/controller/python/chip/exceptions/__init__.py
+@@ -15,6 +15,8 @@
+ #    limitations under the License.
+ #
+ 
++from __future__ import annotations
++
+ __all__ = [
+     "ChipStackException",
+     "ChipStackError",
+@@ -26,15 +28,32 @@ __all__ = [
+     "UnknownCommand",
+ ]
+ 
++from typing import TYPE_CHECKING
++
++if TYPE_CHECKING:
++    from chip.native import PyChipError
++
+ 
+ class ChipStackException(Exception):
+     pass
+ 
+ 
+ class ChipStackError(ChipStackException):
+-    def __init__(self, err, msg=None):
+-        self.err = err
+-        self.msg = msg if msg else "Chip Stack Error %d" % err
++    def __init__(self, chip_error: PyChipError, msg=None):
++        self._chip_error = chip_error
++        self.msg = msg if msg else "Chip Stack Error %d" % chip_error.code
++
++    @classmethod
++    def from_chip_error(cls, chip_error: PyChipError) -> ChipStackError:
++        return cls(chip_error, str(chip_error))
++
++    @property
++    def chip_error(self) -> PyChipError | None:
++        return self._chip_error
++
++    @property
++    def err(self) -> int:
++        return self._chip_error.code
+ 
+     def __str__(self):
+         return self.msg
+diff --git a/src/controller/python/chip/interaction_model/delegate.py b/src/controller/python/chip/interaction_model/delegate.py
+index 14512000a6..4741e5f2f7 100644
+--- a/src/controller/python/chip/interaction_model/delegate.py
++++ b/src/controller/python/chip/interaction_model/delegate.py
+@@ -330,7 +330,7 @@ def InitIMDelegate():
+         setter.Set("pychip_InteractionModelDelegate_SetCommandResponseErrorCallback", None, [
+                    _OnCommandResponseFunct])
+         setter.Set("pychip_InteractionModel_GetCommandSenderHandle",
+-                   c_uint32, [ctypes.POINTER(c_uint64)])
++                   chip.native.PyChipError, [ctypes.POINTER(c_uint64)])
+         setter.Set("pychip_InteractionModelDelegate_SetOnWriteResponseStatusCallback", None, [
+                    _OnWriteResponseStatusFunct])
+ 
+@@ -389,10 +389,8 @@ def WaitCommandIndexStatus(commandHandle: int, commandIndex: int):
+ def GetCommandSenderHandle() -> int:
+     handle = chip.native.GetLibraryHandle()
+     resPointer = c_uint64()
+-    res = handle.pychip_InteractionModel_GetCommandSenderHandle(
+-        ctypes.pointer(resPointer))
+-    if res != 0:
+-        raise chip.exceptions.ChipStackError(res)
++    handle.pychip_InteractionModel_GetCommandSenderHandle(
++        ctypes.pointer(resPointer)).raise_on_error()
+     ClearCommandStatus(resPointer.value)
+     return resPointer.value
+ 
+diff --git a/src/controller/python/chip/native/__init__.py b/src/controller/python/chip/native/__init__.py
+index ce8b7620f4..9ee94c61dd 100644
+--- a/src/controller/python/chip/native/__init__.py
++++ b/src/controller/python/chip/native/__init__.py
+@@ -116,7 +116,7 @@ class PyChipError(ctypes.Structure):
+ 
+     def to_exception(self) -> typing.Union[None, chip.exceptions.ChipStackError]:
+         if not self.is_success:
+-            return chip.exceptions.ChipStackError(self.code, str(self))
++            return chip.exceptions.ChipStackError.from_chip_error(self)
+ 
+     def __str__(self):
+         buf = ctypes.create_string_buffer(256)
+@@ -199,7 +199,7 @@ class NativeLibraryHandleMethodArguments:
+     def Set(self, methodName: str, resultType, argumentTypes: list):
+         method = getattr(self.handle, methodName)
+         method.restype = resultType
+-        method.argtype = argumentTypes
++        method.argtypes = argumentTypes
+ 
+ 
+ @dataclass
+diff --git a/src/controller/python/chip/setup_payload/setup_payload.py b/src/controller/python/chip/setup_payload/setup_payload.py
+index 1f70983ad9..702fb319b4 100644
+--- a/src/controller/python/chip/setup_payload/setup_payload.py
++++ b/src/controller/python/chip/setup_payload/setup_payload.py
+@@ -14,11 +14,10 @@
+ #    limitations under the License.
+ #
+ 
+-from ctypes import CFUNCTYPE, c_char_p, c_int32, c_uint8, c_uint16, c_uint32
++from ctypes import CFUNCTYPE, c_char_p, c_uint8, c_uint16, c_uint32
+ from typing import Optional
+ 
+-from chip.exceptions import ChipStackError
+-from chip.native import GetLibraryHandle, NativeLibraryHandleMethodArguments
++from chip.native import GetLibraryHandle, NativeLibraryHandleMethodArguments, PyChipError
+ 
+ 
+ class SetupPayload:
+@@ -46,34 +45,25 @@ class SetupPayload:
+ 
+     def ParseQrCode(self, qrCode: str):
+         self.Clear()
+-        err = self.chipLib.pychip_SetupPayload_ParseQrCode(qrCode.upper().encode(),
+-                                                           self.attribute_visitor,
+-                                                           self.vendor_attribute_visitor)
+-
+-        if err != 0:
+-            raise ChipStackError(err)
++        self.chipLib.pychip_SetupPayload_ParseQrCode(qrCode.upper().encode(),
++                                                     self.attribute_visitor,
++                                                     self.vendor_attribute_visitor).raise_on_error()
+ 
+         return self
+ 
+     def ParseManualPairingCode(self, manualPairingCode: str):
+         self.Clear()
+-        err = self.chipLib.pychip_SetupPayload_ParseManualPairingCode(manualPairingCode.encode(),
+-                                                                      self.attribute_visitor,
+-                                                                      self.vendor_attribute_visitor)
+-
+-        if err != 0:
+-            raise ChipStackError(err)
++        self.chipLib.pychip_SetupPayload_ParseManualPairingCode(manualPairingCode.encode(),
++                                                                self.attribute_visitor,
++                                                                self.vendor_attribute_visitor).raise_on_error()
+ 
+         return self
+ 
+     # DEPRECATED
+     def PrintOnboardingCodes(self, passcode, vendorId, productId, discriminator, customFlow, capabilities, version):
+         self.Clear()
+-        err = self.chipLib.pychip_SetupPayload_PrintOnboardingCodes(
+-            passcode, vendorId, productId, discriminator, customFlow, capabilities, version)
+-
+-        if err != 0:
+-            raise ChipStackError(err)
++        self.chipLib.pychip_SetupPayload_PrintOnboardingCodes(
++            passcode, vendorId, productId, discriminator, customFlow, capabilities, version).raise_on_error()
+ 
+     # DEPRECATED
+     def Print(self):
+@@ -106,17 +96,17 @@ class SetupPayload:
+         return None
+ 
+     def __InitNativeFunctions(self, chipLib):
+-        if chipLib.pychip_SetupPayload_ParseQrCode is not None:
++        if chipLib.pychip_SetupPayload_ParseQrCode.argtypes is not None:
+             return
+         setter = NativeLibraryHandleMethodArguments(chipLib)
+         setter.Set("pychip_SetupPayload_ParseQrCode",
+-                   c_int32,
++                   PyChipError,
+                    [c_char_p, SetupPayload.AttributeVisitor, SetupPayload.VendorAttributeVisitor])
+         setter.Set("pychip_SetupPayload_ParseManualPairingCode",
+-                   c_int32,
++                   PyChipError,
+                    [c_char_p, SetupPayload.AttributeVisitor, SetupPayload.VendorAttributeVisitor])
+         setter.Set("pychip_SetupPayload_PrintOnboardingCodes",
+-                   c_int32,
++                   PyChipError,
+                    [c_uint32, c_uint16, c_uint16, c_uint16, c_uint8, c_uint8, c_uint8])
+ 
+     # Getters from parsed contents.
+-- 
+2.45.2
+
