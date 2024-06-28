@@ -1,0 +1,25 @@
+From 9b8275ee392e25fdf15afd6376ddd56abd2ad976 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Fri, 28 Jun 2024 11:33:26 +0200
+Subject: [PATCH] [Python] Increase maximum devices support
+
+Set the maximum devies supported to 1024. This increases the limit of
+concurrently active CASE sessions.
+---
+ config/python/CHIPProjectConfig.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/config/python/CHIPProjectConfig.h b/config/python/CHIPProjectConfig.h
+index 5effaaa13c..df9f15af83 100644
+--- a/config/python/CHIPProjectConfig.h
++++ b/config/python/CHIPProjectConfig.h
+@@ -61,4 +61,6 @@
+ 
+ #define CONFIG_BUILD_FOR_HOST_UNIT_TEST 1
+ 
++#define CHIP_CONFIG_CONTROLLER_MAX_ACTIVE_DEVICES 1024
++
+ #endif /* CHIPPROJECTCONFIG_H */
+-- 
+2.45.2
+
