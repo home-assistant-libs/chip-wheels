@@ -120,6 +120,7 @@ jobs:
                                           enable_pylib=true \
                                           chip_config_memory_debug_checks=false \
                                           chip_config_memory_debug_dmalloc=false \
+                                          chip_exchange_node_id_logging=true \
                                           chip_mdns=\"minimal\" \
                                           chip_minmdns_default_policy=\"libnl\" \
                                           chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
