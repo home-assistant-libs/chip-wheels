@@ -211,6 +211,7 @@ jobs:
       - name: Setup Build, Run Build and Run Tests
         run: |
           scripts/build/gn_gen.sh --args=" \
+                                          chip_project_config_include_dirs=[\"//..\"] \
                                           chip_crypto=\"boringssl\"
                                           enable_rtti=true \
                                           enable_pylib=true \
