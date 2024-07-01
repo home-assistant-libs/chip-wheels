@@ -1,18 +1,18 @@
-From d06671d9031156ce3b29e06d7edb344d8f6ee0d6 Mon Sep 17 00:00:00 2001
-Message-ID: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
+From 0c9721460b9d2eda6cb37d2f784aa23ee0cb85a3 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
 
 ---
- src/controller/python/BUILD.gn | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ build/chip/python_wheel.gni    |  9 +++++++++
+ src/controller/python/BUILD.gn | 11 +----------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index 4b84c63d5f..b01dafbc30 100644
---- a/src/controller/python/BUILD.gn
-+++ b/src/controller/python/BUILD.gn
-@@ -35,6 +35,15 @@ declare_args() {
+diff --git a/build/chip/python_wheel.gni b/build/chip/python_wheel.gni
+index ac00fe1404..3f16fe74e3 100644
+--- a/build/chip/python_wheel.gni
++++ b/build/chip/python_wheel.gni
+@@ -22,6 +22,15 @@ declare_args() {
    chip_python_version = "0.0"
    chip_python_package_prefix = "chip"
    chip_python_supports_stack_locking = chip_system_config_locking != "none"
@@ -27,8 +27,12 @@ index 4b84c63d5f..b01dafbc30 100644
 +  }
  }
  
- shared_library("ChipDeviceCtrl") {
-@@ -340,16 +349,7 @@ chip_python_wheel_action("chip-core") {
+ template("chip_python_wheel_action") {
+diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
+index 57822f9ff3..3a441c403e 100644
+--- a/src/controller/python/BUILD.gn
++++ b/src/controller/python/BUILD.gn
+@@ -280,16 +280,7 @@ chip_python_wheel_action("chip-core") {
      cpu_tag = current_cpu
    }
  
@@ -47,5 +51,5 @@ index 4b84c63d5f..b01dafbc30 100644
    tags = "cp37-abi3-" + py_platform_tag
  
 -- 
-2.42.0
+2.45.2
 
