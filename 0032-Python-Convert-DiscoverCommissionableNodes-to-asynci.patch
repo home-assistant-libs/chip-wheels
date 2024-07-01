@@ -1,0 +1,238 @@
+From 47d800809a9979b3162f5f676f308ebd9282c361 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Fri, 21 Jun 2024 14:28:03 +0200
+Subject: [PATCH] [Python] Convert DiscoverCommissionableNodes to asyncio
+ (#34033)
+
+* [Python] Convert DiscoverCommissionableNodes to asyncio
+
+Make the discovery of commissionable nodes Python asyncio APIs as well.
+This avoids blocking the event loop when using the API.
+
+The implementation is also safe to be used with the Python asyncio
+wait_for() function: The discovery process will be cancelled if the
+timeout is reached.
+
+* [Python] Adjust tests to use new DiscoverCommissionableNodes API
+---
+ src/controller/python/chip/ChipDeviceCtrl.py  | 54 +++++++++++--------
+ .../python/chip/commissioning/pase.py         |  4 +-
+ src/controller/python/chip/yaml/runner.py     |  2 +-
+ .../python/test/test_scripts/base.py          |  6 +--
+ .../test/test_scripts/commissioning_test.py   |  2 +-
+ .../test/test_scripts/failsafe_tests.py       |  2 +-
+ .../test/test_scripts/mobile-device-test.py   |  2 +-
+ src/python_testing/TC_IDM_1_2.py              |  2 +-
+ src/python_testing/TC_OPCREDS_3_1.py          |  2 +-
+ 9 files changed, 42 insertions(+), 34 deletions(-)
+
+diff --git a/src/controller/python/chip/ChipDeviceCtrl.py b/src/controller/python/chip/ChipDeviceCtrl.py
+index 1c156c22d4..208385f305 100644
+--- a/src/controller/python/chip/ChipDeviceCtrl.py
++++ b/src/controller/python/chip/ChipDeviceCtrl.py
+@@ -37,7 +37,6 @@ import enum
+ import json
+ import logging
+ import threading
+-import time
+ import typing
+ from ctypes import (CDLL, CFUNCTYPE, POINTER, byref, c_bool, c_char, c_char_p, c_int, c_int32, c_size_t, c_uint8, c_uint16,
+                     c_uint32, c_uint64, c_void_p, create_string_buffer, pointer, py_object, resize, string_at)
+@@ -634,8 +633,8 @@ class ChipDeviceControllerBase():
+ 
+         return (address.value.decode(), port.value) if error == 0 else None
+ 
+-    def DiscoverCommissionableNodes(self, filterType: discovery.FilterType = discovery.FilterType.NONE, filter: typing.Any = None,
+-                                    stopOnFirst: bool = False, timeoutSecond: int = 5) -> typing.Union[None, CommissionableNode, typing.List[CommissionableNode]]:
++    async def DiscoverCommissionableNodes(self, filterType: discovery.FilterType = discovery.FilterType.NONE, filter: typing.Any = None,
++                                          stopOnFirst: bool = False, timeoutSecond: int = 5) -> typing.Union[None, CommissionableNode, typing.List[CommissionableNode]]:
+         ''' Discover commissionable nodes via DNS-SD with specified filters.
+             Supported filters are:
+ 
+@@ -657,27 +656,36 @@ class ChipDeviceControllerBase():
+         if isinstance(filter, int):
+             filter = str(filter)
+ 
+-        self._ChipStack.Call(
+-            lambda: self._dmLib.pychip_DeviceController_DiscoverCommissionableNodes(
+-                self.devCtrl, int(filterType), str(filter).encode("utf-8"))).raise_on_error()
+-
+-        if timeoutSecond != 0:
+-            if stopOnFirst:
+-                target = time.time() + timeoutSecond
+-                while time.time() < target:
+-                    if self._ChipStack.Call(
+-                            lambda: self._dmLib.pychip_DeviceController_HasDiscoveredCommissionableNode(self.devCtrl)):
+-                        break
+-                    time.sleep(0.1)
+-            else:
+-                time.sleep(timeoutSecond)
+-
+-        self._ChipStack.Call(
+-            lambda: self._dmLib.pychip_DeviceController_StopCommissionableDiscovery(self.devCtrl)).raise_on_error()
++        # Discovery is also used during commissioning. Make sure this manual discovery
++        # and commissioning attempts do not interfere with each other.
++        async with self._commissioning_lock:
++            res = await self._ChipStack.CallAsync(
++                lambda: self._dmLib.pychip_DeviceController_DiscoverCommissionableNodes(
++                    self.devCtrl, int(filterType), str(filter).encode("utf-8")))
++            res.raise_on_error()
+ 
+-        return self.GetDiscoveredDevices()
++            async def _wait_discovery():
++                while not await self._ChipStack.CallAsync(
++                        lambda: self._dmLib.pychip_DeviceController_HasDiscoveredCommissionableNode(self.devCtrl)):
++                    await asyncio.sleep(0.1)
++                return
+ 
+-    def GetDiscoveredDevices(self):
++            try:
++                if stopOnFirst:
++                    await asyncio.wait_for(_wait_discovery(), timeoutSecond)
++                else:
++                    await asyncio.sleep(timeoutSecond)
++            except TimeoutError:
++                # Expected timeout, do nothing
++                pass
++            finally:
++                res = await self._ChipStack.CallAsync(
++                    lambda: self._dmLib.pychip_DeviceController_StopCommissionableDiscovery(self.devCtrl))
++                res.raise_on_error()
++
++            return await self.GetDiscoveredDevices()
++
++    async def GetDiscoveredDevices(self):
+         def GetDevices(devCtrl):
+             devices = []
+ 
+@@ -691,7 +699,7 @@ class ChipDeviceControllerBase():
+             self._dmLib.pychip_DeviceController_IterateDiscoveredCommissionableNodes(devCtrl.devCtrl, HandleDevice)
+             return devices
+ 
+-        return self._ChipStack.Call(lambda: GetDevices(self))
++        return await self._ChipStack.CallAsync(lambda: GetDevices(self))
+ 
+     def GetIPForDiscoveredDevice(self, idx, addrStr, length):
+         self.CheckIsActive()
+diff --git a/src/controller/python/chip/commissioning/pase.py b/src/controller/python/chip/commissioning/pase.py
+index c0cfca5ee8..ee0b96c76b 100644
+--- a/src/controller/python/chip/commissioning/pase.py
++++ b/src/controller/python/chip/commissioning/pase.py
+@@ -48,8 +48,8 @@ async def establish_session(devCtrl: ChipDeviceCtrl.ChipDeviceControllerBase, pa
+     if isinstance(parameter, commissioning.PaseOverBLEParameters):
+         await devCtrl.EstablishPASESessionBLE(parameter.setup_pin, parameter.discriminator, parameter.temporary_nodeid)
+     elif isinstance(parameter, commissioning.PaseOverIPParameters):
+-        device = devCtrl.DiscoverCommissionableNodes(filterType=discovery.FilterType.LONG_DISCRIMINATOR,
+-                                                     filter=parameter.long_discriminator, stopOnFirst=True)
++        device = await devCtrl.DiscoverCommissionableNodes(filterType=discovery.FilterType.LONG_DISCRIMINATOR,
++                                                           filter=parameter.long_discriminator, stopOnFirst=True)
+         if not device:
+             raise ValueError("No commissionable device found")
+         selected_address = None
+diff --git a/src/controller/python/chip/yaml/runner.py b/src/controller/python/chip/yaml/runner.py
+index f0b681fb2b..ce1eaf84fc 100644
+--- a/src/controller/python/chip/yaml/runner.py
++++ b/src/controller/python/chip/yaml/runner.py
+@@ -712,7 +712,7 @@ class DiscoveryCommandAction(BaseAction):
+         self.filterType, self.filter = DiscoveryCommandAction._filter_for_step(test_step)
+ 
+     async def run_action(self, dev_ctrl: ChipDeviceController) -> _ActionResult:
+-        devices = dev_ctrl.DiscoverCommissionableNodes(
++        devices = await dev_ctrl.DiscoverCommissionableNodes(
+             filterType=self.filterType, filter=self.filter, stopOnFirst=True, timeoutSecond=5)
+ 
+         # Devices will be a list: [CommissionableNode(), ...]
+diff --git a/src/controller/python/test/test_scripts/base.py b/src/controller/python/test/test_scripts/base.py
+index 84a403643d..5e4def2760 100644
+--- a/src/controller/python/test/test_scripts/base.py
++++ b/src/controller/python/test/test_scripts/base.py
+@@ -210,10 +210,10 @@ class BaseTestHelper:
+             return None
+         return ctypes.string_at(addrStrStorage).decode("utf-8")
+ 
+-    def TestDiscovery(self, discriminator: int):
++    async def TestDiscovery(self, discriminator: int):
+         self.logger.info(
+             f"Discovering commissionable nodes with discriminator {discriminator}")
+-        res = self.devCtrl.DiscoverCommissionableNodes(
++        res = await self.devCtrl.DiscoverCommissionableNodes(
+             chip.discovery.FilterType.LONG_DISCRIMINATOR, discriminator, stopOnFirst=True, timeoutSecond=3)
+         if not res:
+             self.logger.info(
+@@ -337,7 +337,7 @@ class BaseTestHelper:
+ 
+     async def TestOnNetworkCommissioning(self, discriminator: int, setuppin: int, nodeid: int, ip_override: str = None):
+         self.logger.info("Testing discovery")
+-        device = self.TestDiscovery(discriminator=discriminator)
++        device = await self.TestDiscovery(discriminator=discriminator)
+         if not device:
+             self.logger.info("Failed to discover any devices.")
+             return False
+diff --git a/src/controller/python/test/test_scripts/commissioning_test.py b/src/controller/python/test/test_scripts/commissioning_test.py
+index c53ab00f33..ac7954595b 100755
+--- a/src/controller/python/test/test_scripts/commissioning_test.py
++++ b/src/controller/python/test/test_scripts/commissioning_test.py
+@@ -125,7 +125,7 @@ async def main():
+         nodeid=112233, paaTrustStorePath=options.paaTrustStorePath, testCommissioner=True)
+ 
+     logger.info("Testing discovery")
+-    FailIfNot(test.TestDiscovery(discriminator=options.discriminator),
++    FailIfNot(await test.TestDiscovery(discriminator=options.discriminator),
+               "Failed to discover any devices.")
+ 
+     FailIfNot(test.SetNetworkCommissioningParameters(dataset=TEST_THREAD_NETWORK_DATASET_TLV),
+diff --git a/src/controller/python/test/test_scripts/failsafe_tests.py b/src/controller/python/test/test_scripts/failsafe_tests.py
+index d27111cbf7..9e4d4bb14e 100755
+--- a/src/controller/python/test/test_scripts/failsafe_tests.py
++++ b/src/controller/python/test/test_scripts/failsafe_tests.py
+@@ -88,7 +88,7 @@ async def main():
+         nodeid=112233, paaTrustStorePath=options.paaTrustStorePath, testCommissioner=False)
+ 
+     logger.info("Testing discovery")
+-    FailIfNot(test.TestDiscovery(discriminator=TEST_DISCRIMINATOR),
++    FailIfNot(await test.TestDiscovery(discriminator=TEST_DISCRIMINATOR),
+               "Failed to discover any devices.")
+ 
+     FailIfNot(test.SetNetworkCommissioningParameters(dataset=TEST_THREAD_NETWORK_DATASET_TLV),
+diff --git a/src/controller/python/test/test_scripts/mobile-device-test.py b/src/controller/python/test/test_scripts/mobile-device-test.py
+index 179dfa079a..27f8e98964 100755
+--- a/src/controller/python/test/test_scripts/mobile-device-test.py
++++ b/src/controller/python/test/test_scripts/mobile-device-test.py
+@@ -59,7 +59,7 @@ ALL_TESTS = ['network_commissioning', 'datamodel']
+ 
+ async def ethernet_commissioning(test: BaseTestHelper, discriminator: int, setup_pin: int, address_override: str, device_nodeid: int):
+     logger.info("Testing discovery")
+-    device = test.TestDiscovery(discriminator=discriminator)
++    device = await test.TestDiscovery(discriminator=discriminator)
+     FailIfNot(device, "Failed to discover any devices.")
+ 
+     address = device.addresses[0]
+diff --git a/src/python_testing/TC_IDM_1_2.py b/src/python_testing/TC_IDM_1_2.py
+index 18b727d962..dbf131e362 100644
+--- a/src/python_testing/TC_IDM_1_2.py
++++ b/src/python_testing/TC_IDM_1_2.py
+@@ -195,7 +195,7 @@ class TC_IDM_1_2(MatterBaseTest):
+         new_fabric_admin = new_certificate_authority.NewFabricAdmin(vendorId=0xFFF1, fabricId=self.matter_test_config.fabric_id + 1)
+         TH2 = new_fabric_admin.NewController(nodeId=112233)
+ 
+-        devices = TH2.DiscoverCommissionableNodes(
++        devices = await TH2.DiscoverCommissionableNodes(
+             filterType=Discovery.FilterType.LONG_DISCRIMINATOR, filter=discriminator, stopOnFirst=False)
+         # For some reason, the devices returned here aren't filtered, so filter ourselves
+         device = next(filter(lambda d: d.commissioningMode == 2 and d.longDiscriminator == discriminator, devices))
+diff --git a/src/python_testing/TC_OPCREDS_3_1.py b/src/python_testing/TC_OPCREDS_3_1.py
+index 32f3ec7b1f..86b6d109be 100644
+--- a/src/python_testing/TC_OPCREDS_3_1.py
++++ b/src/python_testing/TC_OPCREDS_3_1.py
+@@ -34,7 +34,7 @@ class TC_OPCREDS_3_1(MatterBaseTest):
+         if dev_ctrl is None:
+             dev_ctrl = self.default_controller
+ 
+-        devices = dev_ctrl.DiscoverCommissionableNodes(
++        devices = await dev_ctrl.DiscoverCommissionableNodes(
+             filterType=Discovery.FilterType.LONG_DISCRIMINATOR, filter=longDiscriminator, stopOnFirst=False)
+         # For some reason, the devices returned here aren't filtered, so filter ourselves
+         device = next(filter(lambda d: d.commissioningMode ==
+-- 
+2.45.2
+
