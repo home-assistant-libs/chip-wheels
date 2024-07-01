@@ -1,18 +1,26 @@
-From d06671d9031156ce3b29e06d7edb344d8f6ee0d6 Mon Sep 17 00:00:00 2001
-Message-ID: <d06671d9031156ce3b29e06d7edb344d8f6ee0d6.1698087175.git.stefan@agner.ch>
+From bb236ca831e0a926e6e218006c59bac3bae233ab Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
 
 ---
- src/controller/python/BUILD.gn | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ build/chip/python_wheel.gni    | 13 +++++++++++++
+ src/controller/python/BUILD.gn | 15 +--------------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index 4b84c63d5f..b01dafbc30 100644
---- a/src/controller/python/BUILD.gn
-+++ b/src/controller/python/BUILD.gn
-@@ -35,6 +35,15 @@ declare_args() {
+diff --git a/build/chip/python_wheel.gni b/build/chip/python_wheel.gni
+index ac00fe1404..597a49783d 100644
+--- a/build/chip/python_wheel.gni
++++ b/build/chip/python_wheel.gni
+@@ -18,10 +18,23 @@ import("//build_overrides/pigweed.gni")
+ import("$dir_pw_build/python.gni")
+ import("${chip_root}/src/system/system.gni")
+ 
++if (current_os == "mac") {
++  import("${chip_root}/build/config/mac/mac_sdk.gni")
++}
++
+ declare_args() {
    chip_python_version = "0.0"
    chip_python_package_prefix = "chip"
    chip_python_supports_stack_locking = chip_system_config_locking != "none"
@@ -27,8 +35,23 @@ index 4b84c63d5f..b01dafbc30 100644
 +  }
  }
  
- shared_library("ChipDeviceCtrl") {
-@@ -340,16 +349,7 @@ chip_python_wheel_action("chip-core") {
+ template("chip_python_wheel_action") {
+diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
+index 57822f9ff3..16bcbddc5a 100644
+--- a/src/controller/python/BUILD.gn
++++ b/src/controller/python/BUILD.gn
+@@ -24,10 +24,6 @@ import("${chip_root}/src/platform/python.gni")
+ import("${chip_root}/src/system/system.gni")
+ import("${dir_pw_unit_test}/test.gni")
+ 
+-if (current_os == "mac") {
+-  import("${build_root}/config/mac/mac_sdk.gni")
+-}
+-
+ config("controller_wno_deprecate") {
+   cflags = [ "-Wno-deprecated-declarations" ]
+ }
+@@ -280,16 +276,7 @@ chip_python_wheel_action("chip-core") {
      cpu_tag = current_cpu
    }
  
@@ -47,5 +70,5 @@ index 4b84c63d5f..b01dafbc30 100644
    tags = "cp37-abi3-" + py_platform_tag
  
 -- 
-2.42.0
+2.45.2
 

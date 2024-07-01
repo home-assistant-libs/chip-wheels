@@ -1,4 +1,4 @@
-From 47ca82473af8d77eb89732884542c719ccdd9312 Mon Sep 17 00:00:00 2001
+From e7d9f7ea6369373d1c9cb960306617ee71b2549f Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 29 Feb 2024 19:07:15 +0100
 Subject: [PATCH] Linux: Increase number of endpoints
@@ -36,5 +36,5 @@ index 3aab9a7b9b..02e664eddc 100644
  
  // On linux platform, we have sys/socket.h, so HAVE_SO_BINDTODEVICE should be set to 1
 -- 
-2.44.0
+2.45.2
 
