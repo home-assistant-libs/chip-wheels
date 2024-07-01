@@ -1,6 +1,14 @@
 name: CHIP wheels build
 
-on: push
+on:
+  push:
+    branches:
+    - main
+    - release
+  pull_request:
+    branches:
+    - main
+    - release
 
 jobs:
   build_prepare:
