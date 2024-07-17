@@ -1,4 +1,4 @@
-From 005887af17aa03eb655cee10871e16ff65ceb34e Mon Sep 17 00:00:00 2001
+From 69daf2756196568bd80cc3debe6c11cc6beaa222 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 13 Jun 2024 22:29:36 +0200
 Subject: [PATCH] Avoid errors when using on-network commissioning (#33880)

@@ -1,4 +1,4 @@
-From 3bcfcd1d91050868d0153bf7692db3ac844ccc94 Mon Sep 17 00:00:00 2001
+From b5b1aa29c7db8aa4b03f13cd51f9ec4a7b979446 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 29 Feb 2024 19:07:15 +0100
 Subject: [PATCH] Linux: Increase number of endpoints

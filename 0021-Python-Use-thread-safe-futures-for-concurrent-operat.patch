@@ -1,4 +1,4 @@
-From c50c9fe22beee19242de04ea01fa5eb031506c0b Mon Sep 17 00:00:00 2001
+From 0d035c3060a931a7205e64aafb48bf99c82b8301 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 13 Jun 2024 16:44:23 +0200
 Subject: [PATCH] [Python] Use thread-safe futures for concurrent operations

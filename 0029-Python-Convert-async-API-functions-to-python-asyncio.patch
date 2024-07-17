@@ -1,4 +1,4 @@
-From b60b4c443d21fe3486e1c4c9c7ab92557fa7dda5 Mon Sep 17 00:00:00 2001
+From a574e6a55ed3fa2dfe14f4f2475b2623f5b10cb0 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 20 Jun 2024 16:14:52 +0200
 Subject: [PATCH] [Python] Convert async API functions to python asyncio

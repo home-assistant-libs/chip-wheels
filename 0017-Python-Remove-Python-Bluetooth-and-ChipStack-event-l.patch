@@ -1,4 +1,4 @@
-From a4fb58131d9023ad3a3ec01d44c5ae87946d6b59 Mon Sep 17 00:00:00 2001
+From 1edc2acd9f8faeb481e79154c065c2b85eb87fc8 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 6 Jun 2024 17:11:34 +0200
 Subject: [PATCH] [Python] Remove Python Bluetooth and ChipStack event loop

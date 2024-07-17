@@ -1,4 +1,4 @@
-From 393dbaae77c7bf26a869b8498ce5e731ff0b9651 Mon Sep 17 00:00:00 2001
+From 18e6fcae6e2dcaa0a39306c19de0246b6d0a5764 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 16 May 2024 09:13:00 +0200
 Subject: [PATCH] [Python] Eliminate ZCLReadAttribute/ZCLSend (#33428)

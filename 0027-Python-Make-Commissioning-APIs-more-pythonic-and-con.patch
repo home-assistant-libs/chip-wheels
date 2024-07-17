@@ -1,4 +1,4 @@
-From a5a507e055db590fe4965fbfa8b2a3b368368cd0 Mon Sep 17 00:00:00 2001
+From 73f66667b8e34ba483b5131bf0697c1456e53746 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 18 Jun 2024 23:16:47 +0200
 Subject: [PATCH] [Python] Make Commissioning APIs more pythonic and consistent

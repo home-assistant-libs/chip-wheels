@@ -1,4 +1,4 @@
-From 92f9e7d0d746087ff4c6b0d86b80f7deba661d5d Mon Sep 17 00:00:00 2001
+From 3734bb27d8de27b957698b54d2a03b88619905fc Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 13 Jun 2024 16:13:56 +0200
 Subject: [PATCH] Remove unnecessary error log from CurrentFabricRemover

@@ -54,7 +54,7 @@
 
 #define CHIP_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL 1
 
-#define CONFIG_BUILD_FOR_HOST_UNIT_TEST 1
+#define CONFIG_BUILD_FOR_HOST_UNIT_TEST 0
 
 // Home Assistant Python Matter server specific configs
 #define CHIP_EXCHANGE_NODE_ID_LOGGING 1

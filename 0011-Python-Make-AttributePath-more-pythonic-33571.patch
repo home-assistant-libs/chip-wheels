@@ -1,4 +1,4 @@
-From 518fdbac13ace67cfbd4482286320f4c45ab1b05 Mon Sep 17 00:00:00 2001
+From 34be5d25e6038dd22a1e80fa10b548065b6e6215 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 24 May 2024 10:39:41 +0200
 Subject: [PATCH] [Python] Make AttributePath more pythonic (#33571)

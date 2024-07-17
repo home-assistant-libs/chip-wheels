@@ -1,4 +1,4 @@
-From 049c5803b347e520ba4b3653ce623b6543ae05b6 Mon Sep 17 00:00:00 2001
+From e5ecc03b7ae65eda30357af92687b36c23bcf36d Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 14 Jun 2024 15:43:44 +0200
 Subject: [PATCH] [Python] Drop unnecessary null termination (#33915)

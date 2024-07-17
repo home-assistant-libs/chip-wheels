@@ -1,4 +1,4 @@
-From 56b56ee08006d935cb86dd3fb38e96d79c78bb45 Mon Sep 17 00:00:00 2001
+From b079cfb8fabc4927dd59e8913684a2b58fcb4f3c Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 16 May 2024 09:35:25 +0200
 Subject: [PATCH] [Python] Call SDK asyncio friendly (#32764)
