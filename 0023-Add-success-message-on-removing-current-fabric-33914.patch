@@ -1,4 +1,4 @@
-From 5ec1d9c49d505d5e462f6c935b7f325cbf632e8f Mon Sep 17 00:00:00 2001
+From 988b3fbd5db017f49fc6dd0151a6906f4e47844e Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 14 Jun 2024 01:34:21 +0200
 Subject: [PATCH] Add success message on removing current fabric (#33914)

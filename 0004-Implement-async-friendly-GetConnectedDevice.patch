@@ -1,4 +1,4 @@
-From 7ce75765081aeebef5f3adc397dff4db256348eb Mon Sep 17 00:00:00 2001
+From 005112398921c0b0a2cdf9805390311d5b49f4f3 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Wed, 27 Mar 2024 22:13:19 +0100
 Subject: [PATCH] Implement async friendly GetConnectedDevice

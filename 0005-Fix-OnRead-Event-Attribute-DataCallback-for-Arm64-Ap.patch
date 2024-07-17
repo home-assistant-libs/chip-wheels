@@ -1,4 +1,4 @@
-From 113143a945bbe5663b78b59b05d6b00670d79292 Mon Sep 17 00:00:00 2001
+From 20422009f55822b8dbd0b4cbc2855b756943ce08 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 25 Apr 2024 15:19:17 +0200
 Subject: [PATCH] Fix OnRead[Event|Attribute]DataCallback for Arm64 Apple

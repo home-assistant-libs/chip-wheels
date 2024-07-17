@@ -1,4 +1,4 @@
-From 8cf4a7a4a642fc60bc5716860f63292b316335f1 Mon Sep 17 00:00:00 2001
+From f17afe57391c7346af140fcc8cf7442f6f11f781 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Wed, 19 Jun 2024 16:26:32 +0200
 Subject: [PATCH] [Python] Reset chip error in test commissioner (#34001)

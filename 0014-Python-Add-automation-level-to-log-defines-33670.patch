@@ -1,4 +1,4 @@
-From 0fe7d8b3d9c920ce7dc970097962dca14f9d8f03 Mon Sep 17 00:00:00 2001
+From 235286b7c98474afc9434a3eec0c07157b4c3679 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 31 May 2024 15:24:42 +0200
 Subject: [PATCH] [Python] Add "automation" level to log defines (#33670)

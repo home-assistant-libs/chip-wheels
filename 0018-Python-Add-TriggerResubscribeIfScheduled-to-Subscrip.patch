@@ -1,4 +1,4 @@
-From 9e3eeeaf21a3a258ea6d068f8ade8c321b7b5563 Mon Sep 17 00:00:00 2001
+From 29e6e6b1c0a6925abc33510297f6f49470bcf016 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 7 Jun 2024 15:50:34 +0200
 Subject: [PATCH] [Python] Add TriggerResubscribeIfScheduled to

@@ -1,4 +1,4 @@
-From d9231b499271843b4501ea84bfa56a5b3ac9a1b5 Mon Sep 17 00:00:00 2001
+From 65334ba37c6187dc1d3cf2f2a49fa57ee086d277 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 18 Jun 2024 14:45:11 +0200
 Subject: [PATCH] [Python] Store original PyChipError in ChipStackException

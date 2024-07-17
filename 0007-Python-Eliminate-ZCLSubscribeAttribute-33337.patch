@@ -1,4 +1,4 @@
-From ba5d91afca90d186fb78de54f5d71705747b097a Mon Sep 17 00:00:00 2001
+From a1e13f098c1e8a140b016bd10d76b36ebf3d6df2 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Mon, 13 May 2024 15:16:56 +0200
 Subject: [PATCH] [Python] Eliminate ZCLSubscribeAttribute (#33337)

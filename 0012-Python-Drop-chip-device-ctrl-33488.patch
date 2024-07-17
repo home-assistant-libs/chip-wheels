@@ -1,4 +1,4 @@
-From 9be9b5e5f8b7988c71b178ffc24c76590c8f0f88 Mon Sep 17 00:00:00 2001
+From c6838582c226796198993741aaa8cd1a1022fed3 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 24 May 2024 16:19:35 +0200
 Subject: [PATCH] [Python] Drop chip-device-ctrl (#33488)

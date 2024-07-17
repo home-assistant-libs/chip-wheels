@@ -1,4 +1,4 @@
-From 025bdb7a1e9b9669ab091b96f9ac0adefe3a53dd Mon Sep 17 00:00:00 2001
+From 155d4471de2c988b5089325bb0e9eb59e93d3c0d Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Wed, 5 Jun 2024 16:06:15 +0200
 Subject: [PATCH] [Python] Drop network lock (#33720)

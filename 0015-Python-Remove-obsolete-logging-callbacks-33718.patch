@@ -1,4 +1,4 @@
-From 92dc4417ed88d016d0b21e377d1c04a97e55f34e Mon Sep 17 00:00:00 2001
+From 4111dc126f04bce71a0f712c59cc7294c2fcad5d Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 4 Jun 2024 07:14:58 +0200
 Subject: [PATCH] [Python] Remove obsolete logging callbacks (#33718)

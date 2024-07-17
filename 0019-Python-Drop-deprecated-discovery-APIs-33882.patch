@@ -1,4 +1,4 @@
-From 75954f9f6c493726c004f31631c9c7baf30ffff4 Mon Sep 17 00:00:00 2001
+From 08d23c879cd47a9ba2d0675ea04a0abb041a8d9e Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Wed, 12 Jun 2024 19:49:51 +0200
 Subject: [PATCH] [Python] Drop deprecated discovery APIs (#33882)

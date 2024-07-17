@@ -1,4 +1,4 @@
-From 25180ab3236c2af49f6003109e1a2e8769c3ba4b Mon Sep 17 00:00:00 2001
+From e6f0f69d0d61c60cd7ad3b84f59c50794d95797a Mon Sep 17 00:00:00 2001
 From: "tianfeng.yang" <130436698+tianfeng-yang@users.noreply.github.com>
 Date: Wed, 17 Apr 2024 21:53:13 +0800
 Subject: [PATCH] [Python] Create pairingDelegate for each DeviceController

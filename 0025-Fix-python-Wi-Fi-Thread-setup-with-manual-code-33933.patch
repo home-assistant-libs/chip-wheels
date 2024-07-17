@@ -1,4 +1,4 @@
-From 462bd9d6a8a9dcf60ab9f674e41c762c602fd8e0 Mon Sep 17 00:00:00 2001
+From bed8252a3ee1cf41510c470514cc86ae4a3a0bf3 Mon Sep 17 00:00:00 2001
 From: Tennessee Carmel-Veilleux <tennessee.carmelveilleux@gmail.com>
 Date: Fri, 14 Jun 2024 18:52:44 -0400
 Subject: [PATCH] Fix python Wi-Fi/Thread setup with manual code (#33933)

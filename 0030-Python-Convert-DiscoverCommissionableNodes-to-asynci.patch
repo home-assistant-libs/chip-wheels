@@ -1,4 +1,4 @@
-From 47d800809a9979b3162f5f676f308ebd9282c361 Mon Sep 17 00:00:00 2001
+From 0b589b17b4c638afb67e4bd6ed91a0c4fabb619d Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 21 Jun 2024 14:28:03 +0200
 Subject: [PATCH] [Python] Convert DiscoverCommissionableNodes to asyncio

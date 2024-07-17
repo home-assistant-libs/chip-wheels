@@ -1,4 +1,4 @@
-From 3997a66e9e436646a4652448bc72309d8afee2bf Mon Sep 17 00:00:00 2001
+From 3297c2f2240ac4b3dcf740a2604e1f22a42799d5 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 30 May 2024 22:41:35 +0200
 Subject: [PATCH] [Python] Remove obsolete callback handling (#33665)

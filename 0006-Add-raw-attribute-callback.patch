@@ -1,4 +1,4 @@
-From 4fe4daf7f165dc007ab6092bee2adef67650d129 Mon Sep 17 00:00:00 2001
+From 749cd076e35127092efa8f680902bebf8967389d Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 23 May 2024 12:48:54 +0200
 Subject: [PATCH] Add raw attribute callback
