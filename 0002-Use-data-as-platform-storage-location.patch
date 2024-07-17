@@ -1,4 +1,4 @@
-From d7ee88a28d2783b0f9f67b4f7753ca3ff6c62f2d Mon Sep 17 00:00:00 2001
+From f26db733ebfed0e33f7a0df6fc468e820ddc94be Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 27 May 2022 16:38:14 +0200
 Subject: [PATCH] Use /data as platform storage location

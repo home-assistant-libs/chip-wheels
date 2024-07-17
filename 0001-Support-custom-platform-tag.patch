@@ -1,4 +1,4 @@
-From bb236ca831e0a926e6e218006c59bac3bae233ab Mon Sep 17 00:00:00 2001
+From 4b9b200125355170e220dd34ddc07a613d1092f3 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
