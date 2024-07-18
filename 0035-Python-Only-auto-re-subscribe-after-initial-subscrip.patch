@@ -1,0 +1,63 @@
+From 1ef35acf92542d14bf34061f8013c678743c12a4 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Thu, 18 Jul 2024 07:49:05 +0100
+Subject: [PATCH] [Python] Only auto re-subscribe after initial subscription
+ (#34370)
+
+The subscription logic waits for the first successful subscription
+before the Read() call is being returned (the future is awaited which
+is only released on handleSubscriptionEstablished). If the first
+subscription attempt fails (e.g. because the CASE session doesn't
+establish) the Read() never returns, not with an error but also not
+with a subscription transaction. And since the Python side has no
+access to the SubscriptionTransaction object at this point yet,
+there is also no way to stop this subscription attempt.
+
+With this change, we only resubscribe if the initial subscription was
+successful. This changes semantics slightly, but really allows the
+caller to decide if it wants to continue try to establish the
+subscription.
+---
+ src/controller/python/chip/clusters/attribute.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/controller/python/chip/clusters/attribute.cpp b/src/controller/python/chip/clusters/attribute.cpp
+index 7c5b2c906a..421284a0ae 100644
+--- a/src/controller/python/chip/clusters/attribute.cpp
++++ b/src/controller/python/chip/clusters/attribute.cpp
+@@ -145,18 +145,20 @@ public:
+ 
+     void OnSubscriptionEstablished(SubscriptionId aSubscriptionId) override
+     {
++        // Only enable auto resubscribe if the subscription is established successfully.
++        mAutoResubscribeNeeded = mAutoResubscribe;
+         gOnSubscriptionEstablishedCallback(mAppContext, aSubscriptionId);
+     }
+ 
+     CHIP_ERROR OnResubscriptionNeeded(ReadClient * apReadClient, CHIP_ERROR aTerminationCause) override
+     {
+-        if (mAutoResubscribe)
++        if (mAutoResubscribeNeeded)
+         {
+             ReturnErrorOnFailure(ReadClient::Callback::OnResubscriptionNeeded(apReadClient, aTerminationCause));
+         }
+         gOnResubscriptionAttemptedCallback(mAppContext, ToPyChipError(aTerminationCause),
+                                            apReadClient->ComputeTimeTillNextSubscription());
+-        if (mAutoResubscribe)
++        if (mAutoResubscribeNeeded)
+         {
+             return CHIP_NO_ERROR;
+         }
+@@ -242,7 +244,8 @@ private:
+     PyObject * mAppContext;
+ 
+     std::unique_ptr<ReadClient> mReadClient;
+-    bool mAutoResubscribe = true;
++    bool mAutoResubscribe       = true;
++    bool mAutoResubscribeNeeded = false;
+ };
+ 
+ extern "C" {
+-- 
+2.45.2
+
