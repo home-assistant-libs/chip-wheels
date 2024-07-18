@@ -28,4 +28,10 @@
 //#define CHIP_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX 9050
 #endif
 
+// Users run into endpoint limits, posting "Endpoint pool full" in various
+// setups. This is likely caused by installations with many containers
+// running or similar.
+#define INET_CONFIG_NUM_TCP_ENDPOINTS 128
+#define INET_CONFIG_NUM_UDP_ENDPOINTS 128
+
 #endif /* SYSTEMPROJECTCONFIG_H */
