@@ -1,0 +1,64 @@
+From 5ab917909f15fec74778cc2e805b254aaccef1c3 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Thu, 18 Jul 2024 07:39:38 +0100
+Subject: [PATCH] [Python] Fix subscription error handling and re-subscription
+ (#34372)
+
+* [Python] Fix error callback in AsyncReadTransaction
+
+Currently the error callback is only called when the future is not done
+yet and the subscription handler exists. However, the subscription
+handler only gets initialized on successful subscription, which is also
+where the future gets set to done. So there is no situation where the
+error callback is being called, currently.
+
+Fix this by calling the error callback straight from the Matter SDK
+Thread when the subscription handler exists. This makes it independent
+of the future.
+
+* [Python] Update subscription id on re-subscribe
+
+Make sure we update the subscription ID in the subscription established
+callback when the subscription handler already exists. This makes sure
+that we have the correct subscription ID stored in the
+`SubscriptionTransaction` object after successfully re-subscribe too.
+---
+ src/controller/python/chip/clusters/Attribute.py | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/controller/python/chip/clusters/Attribute.py b/src/controller/python/chip/clusters/Attribute.py
+index 31e8444c70..63ca02d8df 100644
+--- a/src/controller/python/chip/clusters/Attribute.py
++++ b/src/controller/python/chip/clusters/Attribute.py
+@@ -743,6 +743,8 @@ class AsyncReadTransaction:
+             LOGGER.exception(ex)
+ 
+     def handleError(self, chipError: PyChipError):
++        if self._subscription_handler:
++            self._subscription_handler.OnErrorCb(chipError.code, self._subscription_handler)
+         self._resultError = chipError
+ 
+     def _handleSubscriptionEstablished(self, subscriptionId):
+@@ -751,6 +753,7 @@ class AsyncReadTransaction:
+                 self, subscriptionId, self._devCtrl)
+             self._future.set_result(self._subscription_handler)
+         else:
++            self._subscription_handler._subscriptionId = subscriptionId
+             if self._subscription_handler._onResubscriptionSucceededCb is not None:
+                 if (self._subscription_handler._onResubscriptionSucceededCb_isAsync):
+                     self._event_loop.create_task(
+@@ -807,10 +810,7 @@ class AsyncReadTransaction:
+         #
+         if not self._future.done():
+             if self._resultError is not None:
+-                if self._subscription_handler:
+-                    self._subscription_handler.OnErrorCb(self._resultError.code, self._subscription_handler)
+-                else:
+-                    self._future.set_exception(self._resultError.to_exception())
++                self._future.set_exception(self._resultError.to_exception())
+             else:
+                 self._future.set_result(AsyncReadTransaction.ReadResponse(
+                     attributes=self._cache.attributeCache, events=self._events, tlvAttributes=self._cache.attributeTLVCache))
+-- 
+2.45.2
+
