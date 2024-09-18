@@ -117,7 +117,6 @@ jobs:
                                           chip_project_config_include_dirs=[\"//..\"] \
                                           chip_crypto=\"boringssl\"
                                           enable_rtti=true \
-                                          enable_pylib=true \
                                           chip_config_memory_debug_checks=false \
                                           chip_config_memory_debug_dmalloc=false \
                                           chip_exchange_node_id_logging=true \
@@ -214,7 +213,6 @@ jobs:
           scripts/build/gn_gen.sh --args=" \
                                           chip_crypto=\"boringssl\"
                                           enable_rtti=true \
-                                          enable_pylib=true \
                                           chip_config_memory_debug_checks=false \
                                           chip_config_memory_debug_dmalloc=false \
                                           chip_mdns=\"minimal\" \
