@@ -1,4 +1,4 @@
-From f26db733ebfed0e33f7a0df6fc468e820ddc94be Mon Sep 17 00:00:00 2001
+From 9c596bf3ab0e62725f6c0eddb0e3385e6f3df70c Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 27 May 2022 16:38:14 +0200
 Subject: [PATCH] Use /data as platform storage location
@@ -25,5 +25,5 @@ index 35b5047c9f..4886bc3ebb 100644
      "../DeviceSafeQueue.cpp",
      "../DeviceSafeQueue.h",
 -- 
-2.45.2
+2.46.0
 
