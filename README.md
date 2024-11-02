@@ -3,7 +3,7 @@
 This repository provides the building infrastructure to build Python wheels of
 the Matter device controller. It uses the [official project Matter SDK](https://github.com/project-chip/connectedhomeip/)
 and builds the Python bindings available at `src/controller/python/`. The
-bindings use the official Matter implementation wriitten in C++ as a native
+bindings use the official Matter implementation written in C++ as a native
 library using ctypes bindings. The `chip-core` wheel contains this native
 library. Hence the `chip-core` wheel is a platform specific wheel.
 
