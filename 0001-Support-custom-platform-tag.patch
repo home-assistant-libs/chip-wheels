@@ -1,4 +1,4 @@
-From 4fffac0c64fbdb5502b2d72eb96808124fc4acda Mon Sep 17 00:00:00 2001
+From 43848867c2b6ef73c348066029eb8bc0a90500aa Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
@@ -70,5 +70,5 @@ index 58d9cb1f7c..96db7d4dee 100644
    tags = "cp37-abi3-" + py_platform_tag
  
 -- 
-2.46.0
+2.47.0
 
