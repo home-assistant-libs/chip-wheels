@@ -1,6 +1,6 @@
 [submodule "connectedhomeip"]
 	path = connectedhomeip
-	url = https://github.com/project-chip/connectedhomeip.git
-	branch = master
+	url = https://github.com/CNWenwuGong/connectedhomeip.git
+	branch = 202401.1b
 	fetchRecurseSubmodules = false
 	depth = 1
