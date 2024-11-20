@@ -76,10 +76,10 @@ jobs:
       matrix:
         arch:
           - name: x86_64
-            container: ghcr.io/project-chip/chip-build:1
+            container: ghcr.io/project-chip/chip-build:81
             runner: ubuntu-22.04
           - name: aarch64
-            container: docker.io/agners/aarch64-chip-build:1
+            container: docker.io/agners/aarch64-chip-build:81
             runner: ARM64
 
     runs-on: ${{ matrix.arch.runner }}
@@ -105,7 +105,7 @@ jobs:
       - name: Extract Matter SDK from tar
         working-directory: ./
         run: |
-          apt update && apt install zstd
+          apt-get -qq update && apt-get -qq --yes install zstd
           rm -rf connectedhomeip/
           tar -xaf ./connectedhomeip.tar.zst --use-compress-program=zstdmt .
           git config --global --add safe.directory "*"
@@ -117,9 +117,9 @@ jobs:
                                           chip_project_config_include_dirs=[\"//..\"] \
                                           chip_crypto=\"boringssl\"
                                           enable_rtti=true \
-                                          enable_pylib=true \
                                           chip_config_memory_debug_checks=false \
                                           chip_config_memory_debug_dmalloc=false \
+                                          chip_exchange_node_id_logging=true \
                                           chip_mdns=\"minimal\" \
                                           chip_minmdns_default_policy=\"libnl\" \
                                           chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
@@ -214,7 +214,6 @@ jobs:
                                           chip_project_config_include_dirs=[\"//..\"] \
                                           chip_crypto=\"boringssl\"
                                           enable_rtti=true \
-                                          enable_pylib=true \
                                           chip_config_memory_debug_checks=false \
                                           chip_config_memory_debug_dmalloc=false \
                                           chip_mdns=\"minimal\" \

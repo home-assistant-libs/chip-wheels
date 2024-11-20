@@ -1,4 +1,4 @@
-From 703b75caecae8638ea0caeda0c9f4f4a2bdc1819 Mon Sep 17 00:00:00 2001
+From 0ebf0f8cfea2d4b23b3fa78c681dc6ff6536d699 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Fri, 27 May 2022 16:38:14 +0200
 Subject: [PATCH] Use /data as platform storage location
@@ -8,7 +8,7 @@ Subject: [PATCH] Use /data as platform storage location
  1 file changed, 6 insertions(+)
 
 diff --git a/src/platform/Linux/BUILD.gn b/src/platform/Linux/BUILD.gn
-index d73a2dcb0f..97c397994e 100644
+index 35b5047c9f..4886bc3ebb 100644
 --- a/src/platform/Linux/BUILD.gn
 +++ b/src/platform/Linux/BUILD.gn
 @@ -38,6 +38,12 @@ if (chip_mdns == "platform") {
@@ -25,5 +25,5 @@ index d73a2dcb0f..97c397994e 100644
      "../DeviceSafeQueue.cpp",
      "../DeviceSafeQueue.h",
 -- 
-2.45.2
+2.47.0
 
