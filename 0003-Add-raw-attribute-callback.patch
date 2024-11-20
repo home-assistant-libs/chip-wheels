@@ -1,4 +1,4 @@
-From 749cd076e35127092efa8f680902bebf8967389d Mon Sep 17 00:00:00 2001
+From 0f6dc07cb5c20d89b7e51342a32a73d58dd91b7d Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 23 May 2024 12:48:54 +0200
 Subject: [PATCH] Add raw attribute callback
@@ -14,18 +14,18 @@ directly from the subscription transaction.
  1 file changed, 38 insertions(+), 10 deletions(-)
 
 diff --git a/src/controller/python/chip/clusters/Attribute.py b/src/controller/python/chip/clusters/Attribute.py
-index 9e46eed469..ce522bf452 100644
+index 4d5bc1d17a..cb7bdb0bc4 100644
 --- a/src/controller/python/chip/clusters/Attribute.py
 +++ b/src/controller/python/chip/clusters/Attribute.py
-@@ -466,6 +466,7 @@ class SubscriptionTransaction:
-     def __init__(self, transaction: AsyncReadTransaction, subscriptionId, devCtrl):
-         self._onResubscriptionAttemptedCb = DefaultResubscriptionAttemptedCallback
-         self._onAttributeChangeCb = DefaultAttributeChangeCallback
-+        self._onRawAttributeChangeCb = None
-         self._onEventChangeCb = DefaultEventChangeCallback
-         self._onErrorCb = DefaultErrorCallback
+@@ -429,6 +429,7 @@ class SubscriptionTransaction:
+         self._onResubscriptionAttemptedCb: Callable[[SubscriptionTransaction,
+                                                      int, int], None] = DefaultResubscriptionAttemptedCallback
+         self._onAttributeChangeCb: Callable[[TypedAttributePath, SubscriptionTransaction], None] = DefaultAttributeChangeCallback
++        self._onRawAttributeChangeCb: Optional[Callable[[AttributePath, SubscriptionTransaction]]] = None
+         self._onEventChangeCb: Callable[[EventReadResult, SubscriptionTransaction], None] = DefaultEventChangeCallback
+         self._onErrorCb: Callable[[int, SubscriptionTransaction], None] = DefaultErrorCallback
          self._readTransaction = transaction
-@@ -491,6 +492,18 @@ class SubscriptionTransaction:
+@@ -454,6 +455,18 @@ class SubscriptionTransaction:
          else:
              return data[path.Path.EndpointId][path.ClusterType][path.AttributeType]
  
@@ -44,7 +44,7 @@ index 9e46eed469..ce522bf452 100644
      def GetEvents(self):
          return self._readTransaction.GetAllEventValues()
  
-@@ -564,8 +577,14 @@ class SubscriptionTransaction:
+@@ -534,8 +547,14 @@ class SubscriptionTransaction:
          Sets the callback function for the attribute value change event,
          accepts a Callable accepts an attribute path and the cached data.
          '''
@@ -61,7 +61,7 @@ index 9e46eed469..ce522bf452 100644
  
      def SetEventUpdateCallback(self, callback: Callable[[EventReadResult, SubscriptionTransaction], None]):
          if callback is not None:
-@@ -583,6 +602,10 @@ class SubscriptionTransaction:
+@@ -553,6 +572,10 @@ class SubscriptionTransaction:
      def OnAttributeChangeCb(self) -> Callable[[TypedAttributePath, SubscriptionTransaction], None]:
          return self._onAttributeChangeCb
  
@@ -72,15 +72,15 @@ index 9e46eed469..ce522bf452 100644
      @property
      def OnEventChangeCb(self) -> Callable[[EventReadResult, SubscriptionTransaction], None]:
          return self._onEventChangeCb
-@@ -785,14 +808,19 @@ class AsyncReadTransaction:
- 
+@@ -767,14 +790,19 @@ class AsyncReadTransaction:
+     def _handleReportEnd(self):
          if (self._subscription_handler is not None):
              for change in self._changedPathSet:
 -                try:
 -                    attribute_path = TypedAttributePath(Path=change)
 -                except (KeyError, ValueError) as err:
 -                    # path could not be resolved into a TypedAttributePath
--                    logging.getLogger(__name__).exception(err)
+-                    LOGGER.exception(err)
 -                    continue
 -                self._subscription_handler.OnAttributeChangeCb(
 -                    attribute_path, self._subscription_handler)
@@ -89,7 +89,7 @@ index 9e46eed469..ce522bf452 100644
 +                        attribute_path = TypedAttributePath(Path=change)
 +                    except (KeyError, ValueError) as err:
 +                        # path could not be resolved into a TypedAttributePath
-+                        logging.getLogger(__name__).exception(err)
++                        LOGGER.exception(err)
 +                        continue
 +                    self._subscription_handler.OnAttributeChangeCb(
 +                        attribute_path, self._subscription_handler)
@@ -101,5 +101,5 @@ index 9e46eed469..ce522bf452 100644
              # Clear it out once we've notified of all changes in this transaction.
          self._changedPathSet = set()
 -- 
-2.45.2
+2.47.0
 
