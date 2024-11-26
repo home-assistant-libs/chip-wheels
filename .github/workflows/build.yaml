@@ -1,6 +1,11 @@
 name: CHIP wheels build
 
-on: push
+on:
+  push:
+    branches:
+      - main
+      - release
+  pull_request:
 
 jobs:
   build_prepare:
@@ -19,25 +24,19 @@ jobs:
         id: version
         shell: bash
         run: |
-          version=$(echo "${{ github.ref }}" | awk -F"/" '{print $NF}')
-          if [[ ! -z "${{ github.event.inputs.version }}" ]]; then
-            version="${{ github.event.inputs.version }}"
-          elif [[ "${version}" =~ (main|dev) ]]; then
-            today="$(date --utc '+%Y-%m-%d')"
-            midnight_timestamp="$(date --utc +%s --date=$today)"
-            calver_date="$(date --utc --date=$today '+%Y.%-m.dev%-d')"
-            commit_count="$(git rev-list --count --since=$midnight_timestamp HEAD)"
-            commit_count="$(printf "%02d" ${commit_count})"
-            version="${calver_date}${commit_count}"
-          elif [[ "${{ github.ref }}" =~ ^refs/heads/ ]]; then
-            today="$(date --utc '+%Y-%m-%d')"
-            midnight_timestamp="$(date --utc +%s --date=$today)"
-            calver_date="$(date --utc --date=$today '+%Y.%-m.dev%-d')"
-            # Remove invalid chars
-            localversion="${version}"
-            localversion="${localversion//-/}"
-            localversion="${localversion//_/}"
-            version="${calver_date}+${localversion}"
+          version="${{ github.ref_name }}"
+          today="$(date --utc '+%Y-%m-%d')"
+          midnight_timestamp="$(date --utc +%s --date=$today)"
+          calver_date="$(date --utc --date=$today '+%Y.%-m.dev%-d')"
+          if [ "${{ github.event_name }}" == "push" ]; then
+            if [[ "${version}" = "main" ]]; then
+              # Pushes to main branch are considered dev builds
+              commit_count="$(git rev-list --count --since=$midnight_timestamp HEAD)"
+              commit_count="$(printf "%02d" ${commit_count})"
+              version="${calver_date}${commit_count}"
+            fi
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+            version="${calver_date}+pr${version%%/*}"
           fi
           echo "Building version $version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -68,18 +67,87 @@ jobs:
           name: matter-sdk-${{ github.run_id }}
           path: ./connectedhomeip.tar.zst
 
+  build_linux_build_container:
+    name: Build Linux container for Python wheels
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+      packages: write # Required for pushing containers to the registry
+
+    outputs:
+      container_image: ${{ steps.set_container_tag.outputs.container_image }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensure we can compare changes
+
+      - name: Determine Container Tag and Build Necessity
+        id: set_container_tag
+        run: |
+          build_needed=false
+          tag="${{ github.ref_name }}"
+
+          if [ "${{ github.event_name }}" == "push" ]; then
+            if git diff --name-only ${{ github.event.before }} HEAD | grep -E '^Dockerfile'; then
+              echo "Dockerfile or related files changed; building container."
+              build_needed=true
+            fi
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+            # For pull_request, use base_ref/head_ref
+            if [ "${{ github.event.pull_request.head.repo.fork }}" == "true" ]; then
+              echo "Forked PR detected; using base branch container."
+              tag="${{ github.base_ref }}"
+            else
+              tag="${{ github.head_ref }}"
+              git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
+              if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^Dockerfile'; then
+                echo "Dockerfile or related files changed; building container."
+                build_needed=true
+              fi
+            fi
+          fi
+
+          echo "Using container with tag: ${tag}"
+          echo "container_image=ghcr.io/${{ github.repository }}/chip-wheels-builder:${tag}" >> $GITHUB_OUTPUT
+          echo "build_needed=${build_needed}" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        if: ${{ env.build_needed == 'true' }}
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        if: ${{ env.build_needed == 'true' }}
+
+      - name: Enable containerd snapshotter for multi-platform builds
+        uses: depot/use-containerd-snapshotter-action@v1
+        if: ${{ env.build_needed == 'true' }}
+
+      - name: Build and Push Docker Container
+        if: ${{ env.build_needed == 'true' }}
+        run: |
+          image="${{ steps.set_container_tag.outputs.container_image }}"
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${image} --push .
+
   build_linux_python_lib:
     name: Build Python wheels for Linux (${{ matrix.arch.name }})
-    needs: build_prepare
+    needs:
+      - build_prepare
+      - build_linux_build_container
 
     strategy:
       matrix:
         arch:
           - name: x86_64
-            container: ghcr.io/project-chip/chip-build:81
             runner: ubuntu-22.04
           - name: aarch64
-            container: docker.io/agners/aarch64-chip-build:81
             runner: ARM64
 
     runs-on: ${{ matrix.arch.runner }}
@@ -91,7 +159,7 @@ jobs:
         working-directory: ./connectedhomeip/
 
     container:
-      image: ${{ matrix.arch.container }}
+      image: ${{ needs.build_linux_build_container.outputs.container_image }}
       volumes:
         - "/tmp/log_output:/tmp/test_logs"
       options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
