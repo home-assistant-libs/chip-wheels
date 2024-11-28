@@ -5,9 +5,9 @@ on:
     branches:
       - main
       - release
-    tags:
-      - '**'
   pull_request:
+  release:
+    types: [published]
 
 jobs:
   build_prepare:
@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       version: ${{ steps.version.outputs.version }}
-      channel: ${{ steps.version.outputs.channel }}
     steps:
       - name: Checkout build repository
         uses: actions/checkout@v4
@@ -39,9 +38,13 @@ jobs:
             fi
           elif [ "${{ github.event_name }}" == "pull_request" ]; then
             version="${calver_date}+pr${version%%/*}"
+          elif [ "${{ github.event_name }}" == "release" ]; then
+            # Use tag name for release version
+            version="${{ github.event.release.tag_name }}"
           fi
           echo "Building version $version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Checkout submodules
         working-directory: ./connectedhomeip/
         run: scripts/checkout_submodules.py --shallow --platform linux
@@ -72,10 +75,9 @@ jobs:
   build_linux_build_container:
     name: Build Linux container for Python wheels
     runs-on: ubuntu-22.04
-
     permissions:
       contents: read
-      packages: write # Required for pushing containers to the registry
+      packages: write  # Required for pushing containers to the registry
 
     outputs:
       container_image: ${{ steps.set_container_tag.outputs.container_image }}
@@ -92,6 +94,7 @@ jobs:
           build_needed=false
           tag="${{ github.ref_name }}"
 
+          # Set tag based on base branch (use base branch for the release or pull request)
           if [ "${{ github.event_name }}" == "push" ]; then
             if git diff --name-only ${{ github.event.before }} HEAD | grep -E '^Dockerfile'; then
               echo "Dockerfile or related files changed; building container."
@@ -113,6 +116,8 @@ jobs:
                 tag="${{ github.base_ref }}"
               fi
             fi
+          elif [ "${{ github.event_name }}" == "release" ]; then
+            tag="${{ github.event.release.target_commitish }}"
           fi
 
           echo "Using container with tag: ${tag}"
@@ -157,7 +162,7 @@ jobs:
 
     runs-on: ${{ matrix.arch.runner }}
     permissions:
-      contents: write # for actions/upload-release-asset to upload release asset
+      contents: write  # Required for uploading artifacts and assets
 
     defaults:
       run:
@@ -187,7 +192,7 @@ jobs:
         run: |
           scripts/build/gn_gen.sh --args=" \
                                           chip_project_config_include_dirs=[\"//..\"] \
-                                          chip_crypto=\"boringssl\"
+                                          chip_crypto=\"boringssl\" \
                                           enable_rtti=true \
                                           chip_config_memory_debug_checks=false \
                                           chip_config_memory_debug_dmalloc=false \
@@ -213,11 +218,11 @@ jobs:
           path: ./connectedhomeip/out/controller/python/*.whl
       - name: Upload wheels as release assets
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         with:
           files: ./connectedhomeip/out/controller/python/*.whl
       - name: Upload wheels to PyPI
-        if: startsWith(github.ref, 'refs/tags/')
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         env:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.TWINE_TOKEN_PYPI }}
@@ -308,11 +313,11 @@ jobs:
           path: ./connectedhomeip/out/controller/python/*.whl
       - name: Upload wheels as release assets
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         with:
           files: connectedhomeip/out/controller/python/*.whl
       - name: Upload wheels to PyPI
-        if: startsWith(github.ref, 'refs/tags/')
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         env:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.TWINE_TOKEN_PYPI }}
