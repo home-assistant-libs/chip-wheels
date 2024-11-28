@@ -106,6 +106,9 @@ jobs:
               if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^Dockerfile'; then
                 echo "Dockerfile or related files changed; building container."
                 build_needed=true
+              else
+                echo "No changes to Dockerfile; using container from base branch."
+                tag="${{ github.base_ref }}"
               fi
             fi
           fi
