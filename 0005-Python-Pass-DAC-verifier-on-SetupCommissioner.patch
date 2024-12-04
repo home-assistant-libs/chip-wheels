@@ -1,0 +1,65 @@
+From cb2ac26affec6d02302449e92433bdb9dba07628 Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Wed, 4 Dec 2024 13:49:03 +0100
+Subject: [PATCH] [Python] Pass DAC verifier on SetupCommissioner
+
+Besides setting the global DAC verifier, also explicitly pass the
+verifier on controller initialization. This avoids the common Controller
+initialization code to complain with:
+
+```
+*** Missing DeviceAttestationVerifier configuration at DeviceCommissioner init: using global default, consider passing one in CommissionerInitParams.
+```
+---
+ src/controller/python/OpCredsBinding.cpp                 | 4 +++-
+ src/controller/python/chip/internal/CommissionerImpl.cpp | 5 ++++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/src/controller/python/OpCredsBinding.cpp b/src/controller/python/OpCredsBinding.cpp
+index f5815922cc..ec50d65c33 100644
+--- a/src/controller/python/OpCredsBinding.cpp
++++ b/src/controller/python/OpCredsBinding.cpp
+@@ -490,7 +490,8 @@ PyChipError pychip_OpCreds_AllocateController(OpCredsContext * context, chip::Co
+ 
+     // Initialize device attestation verifier
+     const chip::Credentials::AttestationTrustStore * testingRootStore = GetTestFileAttestationTrustStore(paaTrustStorePath);
+-    SetDeviceAttestationVerifier(GetDefaultDACVerifier(testingRootStore));
++    chip::Credentials::DeviceAttestationVerifier * dacVerifier = chip::Credentials::GetDefaultDACVerifier(testingRootStore);
++    SetDeviceAttestationVerifier(dacVerifier);
+ 
+     chip::Crypto::P256Keypair ephemeralKey;
+     chip::Crypto::P256Keypair * controllerKeyPair;
+@@ -544,6 +545,7 @@ PyChipError pychip_OpCreds_AllocateController(OpCredsContext * context, chip::Co
+     initParams.controllerVendorId                   = adminVendorId;
+     initParams.permitMultiControllerFabrics         = true;
+     initParams.hasExternallyOwnedOperationalKeypair = operationalKey != nullptr;
++    initParams.deviceAttestationVerifier            = dacVerifier;
+ 
+     if (useTestCommissioner)
+     {
+diff --git a/src/controller/python/chip/internal/CommissionerImpl.cpp b/src/controller/python/chip/internal/CommissionerImpl.cpp
+index 7092024267..0640208e34 100644
+--- a/src/controller/python/chip/internal/CommissionerImpl.cpp
++++ b/src/controller/python/chip/internal/CommissionerImpl.cpp
+@@ -131,7 +131,9 @@ extern "C" chip::Controller::DeviceCommissioner * pychip_internal_Commissioner_N
+         // TODO: add option to pass in custom PAA Trust Store path to the python controller app
+         const chip::Credentials::AttestationTrustStore * testingRootStore =
+             GetTestFileAttestationTrustStore("./credentials/development/paa-root-certs");
+-        chip::Credentials::SetDeviceAttestationVerifier(chip::Credentials::GetDefaultDACVerifier(testingRootStore));
++        chip::Credentials::DeviceAttestationVerifier * dacVerifier =
++            chip::Credentials::GetDefaultDACVerifier(testingRootStore);
++        chip::Credentials::SetDeviceAttestationVerifier(dacVerifier);
+ 
+         factoryParams.fabricIndependentStorage = &gServerStorage;
+         factoryParams.sessionKeystore          = &gSessionKeystore;
+@@ -182,6 +184,7 @@ extern "C" chip::Controller::DeviceCommissioner * pychip_internal_Commissioner_N
+             commissionerParams.controllerRCAC                 = rcacSpan;
+             commissionerParams.controllerICAC                 = icacSpan;
+             commissionerParams.controllerNOC                  = nocSpan;
++            commissionerParams.deviceAttestationVerifier      = dacVerifier;
+ 
+             SuccessOrExit(err = DeviceControllerFactory::GetInstance().Init(factoryParams));
+             SuccessOrExit(err = DeviceControllerFactory::GetInstance().SetupCommissioner(commissionerParams, *result));
+-- 
+2.47.1
+
