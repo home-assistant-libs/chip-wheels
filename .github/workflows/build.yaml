@@ -199,7 +199,6 @@ jobs:
                                           chip_exchange_node_id_logging=true \
                                           chip_mdns=\"minimal\" \
                                           chip_minmdns_default_policy=\"libnl\" \
-                                          chip_use_data_model_interface=\"enabled\" \
                                           chip_python_version=\"${{ needs.build_prepare.outputs.version }}\"  \
                                           chip_python_package_prefix=\"home-assistant-chip\" \
                                           chip_python_platform_tag=\"manylinux_2_31\" \
