@@ -288,7 +288,7 @@ jobs:
       - name: Setup Build, Run Build and Run Tests
         run: |
           scripts/build/gn_gen.sh --args=" \
-                                          chip_project_config_include_dirs=[\"//..\"] \
+                                          chip_project_config_include_dirs=[\"//../darwin\"] \
                                           chip_crypto=\"boringssl\"
                                           enable_rtti=true \
                                           chip_config_memory_debug_checks=false \
