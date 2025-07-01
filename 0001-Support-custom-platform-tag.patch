@@ -1,4 +1,4 @@
-From 43848867c2b6ef73c348066029eb8bc0a90500aa Mon Sep 17 00:00:00 2001
+From a70e322f01b414ef47efb226a316cac44b5995e8 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
@@ -37,10 +37,10 @@ index ac00fe1404..597a49783d 100644
  
  template("chip_python_wheel_action") {
 diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index 58d9cb1f7c..96db7d4dee 100644
+index 648e4b39aa..8788bb401b 100644
 --- a/src/controller/python/BUILD.gn
 +++ b/src/controller/python/BUILD.gn
-@@ -24,10 +24,6 @@ import("${chip_root}/src/platform/python.gni")
+@@ -25,10 +25,6 @@ import("${chip_root}/src/platform/python.gni")
  import("${chip_root}/src/system/system.gni")
  import("${dir_pw_unit_test}/test.gni")
  
@@ -51,7 +51,7 @@ index 58d9cb1f7c..96db7d4dee 100644
  config("controller_wno_deprecate") {
    cflags = [ "-Wno-deprecated-declarations" ]
  }
-@@ -282,16 +278,7 @@ chip_python_wheel_action("chip-core") {
+@@ -297,16 +293,7 @@ chip_python_wheel_action("chip-core") {
      cpu_tag = current_cpu
    }
  
@@ -70,5 +70,5 @@ index 58d9cb1f7c..96db7d4dee 100644
    tags = "cp37-abi3-" + py_platform_tag
  
 -- 
-2.47.0
+2.50.0
 
