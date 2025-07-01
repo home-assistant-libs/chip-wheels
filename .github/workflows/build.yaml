@@ -12,7 +12,7 @@ on:
 jobs:
   build_prepare:
     name: Prepare build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -74,7 +74,7 @@ jobs:
 
   build_linux_build_container:
     name: Build Linux container for Python wheels
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write  # Required for pushing containers to the registry
@@ -156,9 +156,9 @@ jobs:
       matrix:
         arch:
           - name: x86_64
-            runner: ubuntu-22.04
+            runner: ubuntu-24.04
           - name: aarch64
-            runner: ARM64
+            runner: ubuntu-24.04-arm
 
     runs-on: ${{ matrix.arch.runner }}
     permissions:
