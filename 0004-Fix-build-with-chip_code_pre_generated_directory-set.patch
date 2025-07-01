@@ -1,0 +1,35 @@
+From 773235243d7a93e4b38e85523a3dc0096b9dce4b Mon Sep 17 00:00:00 2001
+From: Stefan Agner <stefan@agner.ch>
+Date: Tue, 1 Jul 2025 12:03:52 +0200
+Subject: [PATCH] Fix build with chip_code_pre_generated_directory set
+
+When setting chip_code_pre_generated_directory the build system is
+expected to copy the pre-generated files using scripts/copyfiles.py.
+It seems that the target directory is passed directly without using
+rebase_path() to convert it to a relative path. With that, the command
+fails with permission errors as the script attempts to write to /out.
+
+Use rebase_path() to fix builds with chip_code_pre_generated_directory
+set.
+
+Signed-off-by: Stefan Agner <stefan@agner.ch>
+---
+ build/chip/chip_codegen.gni | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build/chip/chip_codegen.gni b/build/chip/chip_codegen.gni
+index 4f81248886..dc4ce2668c 100644
+--- a/build/chip/chip_codegen.gni
++++ b/build/chip/chip_codegen.gni
+@@ -334,7 +334,7 @@ template("chip_codegen") {
+         "--source-dir",
+         _generation_dir,
+         "--target-dir",
+-        target_gen_dir,
++        rebase_path(target_gen_dir, root_build_dir),
+       ]
+ 
+       inputs = []
+-- 
+2.50.0
+
