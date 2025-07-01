@@ -1,4 +1,4 @@
-From 475fdbd08f5b0e71c870dd602c59b2e80ebe47d4 Mon Sep 17 00:00:00 2001
+From 599b7e4108c6dec3257756fe75d9d0c897a60e9a Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 23 May 2024 12:48:54 +0200
 Subject: [PATCH] Add raw attribute callback
@@ -14,7 +14,7 @@ directly from the subscription transaction.
  1 file changed, 38 insertions(+), 10 deletions(-)
 
 diff --git a/src/controller/python/chip/clusters/Attribute.py b/src/controller/python/chip/clusters/Attribute.py
-index 0b51ce4bfc..2191e29d69 100644
+index ea84b4bfb0..b331983d8e 100644
 --- a/src/controller/python/chip/clusters/Attribute.py
 +++ b/src/controller/python/chip/clusters/Attribute.py
 @@ -436,6 +436,7 @@ class SubscriptionTransaction:
@@ -25,7 +25,7 @@ index 0b51ce4bfc..2191e29d69 100644
          self._onEventChangeCb: Callable[[
              EventReadResult, SubscriptionTransaction], None] = DefaultEventChangeCallback
          self._onErrorCb: Callable[[
-@@ -464,6 +465,18 @@ class SubscriptionTransaction:
+@@ -465,6 +466,18 @@ class SubscriptionTransaction:
          else:
              return data[path.Path.EndpointId][path.ClusterType][path.AttributeType]
  
@@ -44,7 +44,7 @@ index 0b51ce4bfc..2191e29d69 100644
      def GetEvents(self):
          return self._readTransaction.GetAllEventValues()
  
-@@ -546,8 +559,14 @@ class SubscriptionTransaction:
+@@ -547,8 +560,14 @@ class SubscriptionTransaction:
          Sets the callback function for the attribute value change event,
          accepts a Callable accepts an attribute path and the cached data.
          '''
@@ -61,7 +61,7 @@ index 0b51ce4bfc..2191e29d69 100644
  
      def SetEventUpdateCallback(self, callback: Callable[[EventReadResult, SubscriptionTransaction], None]):
          if callback is not None:
-@@ -565,6 +584,10 @@ class SubscriptionTransaction:
+@@ -566,6 +585,10 @@ class SubscriptionTransaction:
      def OnAttributeChangeCb(self) -> Callable[[TypedAttributePath, SubscriptionTransaction], None]:
          return self._onAttributeChangeCb
  
@@ -72,9 +72,9 @@ index 0b51ce4bfc..2191e29d69 100644
      @property
      def OnEventChangeCb(self) -> Callable[[EventReadResult, SubscriptionTransaction], None]:
          return self._onEventChangeCb
-@@ -781,14 +804,19 @@ class AsyncReadTransaction:
+@@ -780,14 +803,19 @@ class AsyncReadTransaction:
      def _handleReportEnd(self):
-         if (self._subscription_handler is not None):
+         if self._subscription_handler is not None:
              for change in self._changedPathSet:
 -                try:
 -                    attribute_path = TypedAttributePath(Path=change)
@@ -101,5 +101,5 @@ index 0b51ce4bfc..2191e29d69 100644
              # Clear it out once we've notified of all changes in this transaction.
          self._changedPathSet = set()
 -- 
-2.47.0
+2.50.0
 
