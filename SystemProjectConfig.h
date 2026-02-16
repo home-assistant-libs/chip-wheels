@@ -34,4 +34,9 @@
 #define INET_CONFIG_NUM_TCP_ENDPOINTS 128
 #define INET_CONFIG_NUM_UDP_ENDPOINTS 128
 
+// Use /data for all Matter specific files used for configuration and runtime
+#define FATCONFDIR "/data"
+#define SYSCONFDIR "/data"
+#define LOCALSTATEDIR "/data"
+
 #endif /* SYSTEMPROJECTCONFIG_H */
