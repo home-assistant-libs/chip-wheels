@@ -23,5 +23,6 @@ RUN set -x \
     libnl-3-dev libnl-route-3-dev \
     libcairo2-dev libgirepository1.0-dev \
     libdbus-1-dev \
+    libevent-dev \
     python3-dev \
     zstd

@@ -1,4 +1,4 @@
-From 981854e9066977399a04e316fb63cfa4331261c8 Mon Sep 17 00:00:00 2001
+From f29eb99a5869a46a3a7d81c627c807f13882fb65 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Tue, 22 Nov 2022 10:51:17 +0100
 Subject: [PATCH] Support custom platform tag
@@ -37,7 +37,7 @@ index a41aff0a95..4a70c99a54 100644
  
  template("matter_python_wheel_action") {
 diff --git a/src/controller/python/BUILD.gn b/src/controller/python/BUILD.gn
-index 76de663119..cdc70db7fb 100644
+index efce6b260f..e644ee811a 100644
 --- a/src/controller/python/BUILD.gn
 +++ b/src/controller/python/BUILD.gn
 @@ -27,10 +27,6 @@ import("${chip_root}/src/platform/python.gni")
@@ -51,7 +51,7 @@ index 76de663119..cdc70db7fb 100644
  config("controller_wno_deprecate") {
    cflags = [ "-Wno-deprecated-declarations" ]
  }
-@@ -357,16 +353,7 @@ matter_python_wheel_action("matter-core") {
+@@ -358,16 +354,7 @@ matter_python_wheel_action("matter-core") {
      cpu_tag = current_cpu
    }
  
@@ -70,5 +70,5 @@ index 76de663119..cdc70db7fb 100644
    if (chip_support_commissioning_in_controller) {
      lib_name = "_ChipDeviceCtrl.so"
 -- 
-2.51.2
+2.53.0
 

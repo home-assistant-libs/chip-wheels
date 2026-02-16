@@ -1,4 +1,4 @@
-From b9a61cfe5a253423ff2057119ea070728d2223ca Mon Sep 17 00:00:00 2001
+From b7d157abab6a343b1b3867fd6f34170397d18ff1 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Thu, 23 May 2024 12:48:54 +0200
 Subject: [PATCH] Add raw attribute callback
@@ -14,7 +14,7 @@ directly from the subscription transaction.
  1 file changed, 38 insertions(+), 10 deletions(-)
 
 diff --git a/src/controller/python/matter/clusters/Attribute.py b/src/controller/python/matter/clusters/Attribute.py
-index d8c6b1ca5a..d595e893c3 100644
+index e3eb1a2b51..7699c64dac 100644
 --- a/src/controller/python/matter/clusters/Attribute.py
 +++ b/src/controller/python/matter/clusters/Attribute.py
 @@ -436,6 +436,7 @@ class SubscriptionTransaction:
@@ -25,9 +25,9 @@ index d8c6b1ca5a..d595e893c3 100644
          self._onEventChangeCb: Callable[[
              EventReadResult, SubscriptionTransaction], None] = DefaultEventChangeCallback
          self._onErrorCb: Callable[[
-@@ -467,6 +468,18 @@ class SubscriptionTransaction:
-         else:
-             return data[path.Path.EndpointId][path.ClusterType][path.AttributeType]
+@@ -466,6 +467,18 @@ class SubscriptionTransaction:
+             return eval(f'data[path.Path.EndpointId][path.ClusterType].{path.AttributeName}')
+         return data[path.Path.EndpointId][path.ClusterType][path.AttributeType]
  
 +    def GetTLVAttributes(self) -> Dict[int, Dict[int, Dict[int, Any]]]:
 +        '''Returns the attributes value cache in raw/tag dict value tracking
@@ -44,7 +44,7 @@ index d8c6b1ca5a..d595e893c3 100644
      def GetEvents(self):
          return self._readTransaction.GetAllEventValues()
  
-@@ -549,8 +562,14 @@ class SubscriptionTransaction:
+@@ -548,8 +561,14 @@ class SubscriptionTransaction:
          Sets the callback function for the attribute value change event,
          accepts a Callable that accepts an attribute path and the cached data.
          '''
@@ -61,7 +61,7 @@ index d8c6b1ca5a..d595e893c3 100644
  
      def SetReportBeginCallback(self, callback: Callable[[SubscriptionTransaction], None]):
          '''
-@@ -596,6 +615,10 @@ class SubscriptionTransaction:
+@@ -595,6 +614,10 @@ class SubscriptionTransaction:
      def OnReportEndCb(self) -> Callable[[SubscriptionTransaction], None]:
          return self._onReportEndCb
  
@@ -72,7 +72,7 @@ index d8c6b1ca5a..d595e893c3 100644
      @property
      def OnEventChangeCb(self) -> Callable[[EventReadResult, SubscriptionTransaction], None]:
          return self._onEventChangeCb
-@@ -819,14 +842,19 @@ class AsyncReadTransaction:
+@@ -818,14 +841,19 @@ class AsyncReadTransaction:
      def _handleReportEnd(self):
          if self._subscription_handler is not None:
              for change in self._changedPathSet:
@@ -101,5 +101,5 @@ index d8c6b1ca5a..d595e893c3 100644
              self._subscription_handler.OnReportEndCb(self._subscription_handler)
              # Clear it out once we've notified of all changes in this transaction.
 -- 
-2.51.2
+2.53.0
 
