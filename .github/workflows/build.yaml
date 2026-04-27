@@ -67,7 +67,7 @@ jobs:
           tar -caf ../connectedhomeip.tar.zst --exclude ./connectedhomeip/.environment --use-compress-program=zstdmt .
           mv ../connectedhomeip.tar.zst ./connectedhomeip.tar.zst
       - name: Store Matter SDK as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: matter-sdk-${{ github.run_id }}
           path: ./connectedhomeip.tar.zst
@@ -212,7 +212,7 @@ jobs:
           scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_matter_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
           scripts/run_in_build_env.sh '(cd src/controller/python/tests/ && python3 -m unittest -v)'
       - name: Upload wheels as artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: chip-wheels-linux-${{ matrix.arch.name }}
           path: ./connectedhomeip/out/controller/python/*.whl
@@ -306,7 +306,7 @@ jobs:
           scripts/run_in_build_env.sh 'pip3 install ./out/controller/python/home_assistant_matter_repl-${{ needs.build_prepare.outputs.version }}-py3-none-any.whl'
           scripts/run_in_build_env.sh '(cd src/controller/python/tests/ && python3 -m unittest -v)'
       - name: Upload wheels as artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: chip-wheels-macosx-${{ matrix.arch.name }}
           path: ./connectedhomeip/out/controller/python/*.whl
