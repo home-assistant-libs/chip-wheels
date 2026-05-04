@@ -43,7 +43,7 @@ jobs:
       # Create Pull Request only if there were changes
       - name: Create Pull Request
         if: ${{ steps.update-submodule.outputs.empty != true }}
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: Update Matter SDK to `${{ steps.update-submodule.outputs.short_hash }}`
           title: Update Matter SDK to `${{ steps.update-submodule.outputs.short_hash }}`
